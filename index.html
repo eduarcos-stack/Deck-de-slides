@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inscrições — Nome do Evento</title>
+<meta name="description" content="Faça sua inscrição no evento. Vagas limitadas.">
+<style>
+  :root{
+    --bg:#0d1117;
+    --surface:#161b22;
+    --surface-2:#1c232c;
+    --border:#2b333d;
+    --text:#e6edf3;
+    --muted:#9aa7b4;
+    --accent:#f0803c;
+    --accent-ink:#1a1005;
+    --ok:#3fb950;
+    --err:#f85149;
+    --radius:14px;
+    --maxw:1080px;
+  }
+  @media (prefers-color-scheme: light){
+    :root{
+      --bg:#f7f8fa;
+      --surface:#ffffff;
+      --surface-2:#f0f2f5;
+      --border:#dfe3e8;
+      --text:#141a20;
+      --muted:#5c6772;
+      --accent:#d2691e;
+      --accent-ink:#ffffff;
+      --ok:#1a7f37;
+      --err:#c62828;
+    }
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font:16px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    -webkit-font-smoothing:antialiased;
+  }
+  img{max-width:100%}
+  a{color:var(--accent)}
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 20px}
+
+  /* ---------- topbar ---------- */
+  header.top{
+    position:sticky;top:0;z-index:20;
+    background:color-mix(in srgb, var(--bg) 88%, transparent);
+    backdrop-filter:saturate(160%) blur(10px);
+    border-bottom:1px solid var(--border);
+  }
+  .top .wrap{display:flex;align-items:center;gap:16px;min-height:64px;flex-wrap:wrap}
+  .brand{font-weight:700;letter-spacing:-.01em;margin-right:auto}
+  .brand span{color:var(--accent)}
+  .btn{
+    display:inline-block;border:0;cursor:pointer;font:inherit;font-weight:600;
+    padding:12px 22px;border-radius:999px;background:var(--accent);color:var(--accent-ink);
+    text-decoration:none;transition:transform .12s ease, filter .12s ease;
+  }
+  .btn:hover{filter:brightness(1.07)}
+  .btn:active{transform:translateY(1px)}
+  .btn[disabled]{opacity:.6;cursor:progress}
+  .btn.ghost{background:transparent;color:var(--text);border:1px solid var(--border)}
+
+  /* ---------- hero ---------- */
+  .hero{padding:72px 0 56px;position:relative;overflow:hidden}
+  .hero::before{
+    content:"";position:absolute;inset:-40% 30% 40% -20%;
+    background:radial-gradient(closest-side, color-mix(in srgb, var(--accent) 22%, transparent), transparent);
+    pointer-events:none;
+  }
+  .eyebrow{
+    display:inline-flex;align-items:center;gap:8px;
+    font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--accent);border:1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+    padding:6px 14px;border-radius:999px;background:color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  h1{
+    font-size:clamp(2rem, 6vw, 3.4rem);line-height:1.08;letter-spacing:-.03em;
+    margin:20px 0 16px;max-width:20ch;
+  }
+  .lead{font-size:clamp(1rem,2.4vw,1.2rem);color:var(--muted);max-width:56ch;margin:0 0 32px}
+  .facts{display:flex;flex-wrap:wrap;gap:12px;margin:0 0 34px;padding:0;list-style:none}
+  .facts li{
+    display:flex;align-items:center;gap:10px;
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:var(--radius);padding:12px 16px;font-size:14.5px;
+  }
+  .facts b{display:block;font-size:12px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .hero-cta{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .seats{font-size:14px;color:var(--muted)}
+  .seats strong{color:var(--text)}
+
+  /* ---------- layout ---------- */
+  .grid{display:grid;grid-template-columns:1.15fr .85fr;gap:40px;align-items:start;padding:16px 0 88px}
+  @media (max-width:880px){ .grid{grid-template-columns:1fr;gap:32px} }
+
+  .card{background:var(--surface);border:1px solid var(--border);border-radius:calc(var(--radius) + 4px);padding:28px}
+  .card h2{margin:0 0 6px;font-size:1.35rem;letter-spacing:-.02em}
+  .card .sub{margin:0 0 26px;color:var(--muted);font-size:14.5px}
+
+  /* ---------- form ---------- */
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media (max-width:560px){ .row{grid-template-columns:1fr} }
+  .field{margin-bottom:18px}
+  label{display:block;font-size:14px;font-weight:600;margin-bottom:7px}
+  label .opt{font-weight:400;color:var(--muted)}
+  input[type=text],input[type=email],input[type=tel],select,textarea{
+    width:100%;padding:12px 14px;font:inherit;color:var(--text);
+    background:var(--surface-2);border:1px solid var(--border);border-radius:10px;
+    transition:border-color .12s ease, box-shadow .12s ease;
+  }
+  textarea{resize:vertical;min-height:86px}
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--accent);
+    box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent);
+  }
+  [aria-invalid="true"]{border-color:var(--err)!important}
+  .error{display:none;color:var(--err);font-size:13px;margin-top:6px}
+  [aria-invalid="true"] ~ .error,
+  .field:has([aria-invalid="true"]) > .error{display:block}
+  fieldset{border:0;padding:0;margin:0 0 18px}
+  legend{font-size:14px;font-weight:600;margin-bottom:9px;padding:0}
+  .choices{display:flex;gap:10px;flex-wrap:wrap}
+  .choice{
+    display:flex;align-items:center;gap:9px;cursor:pointer;
+    border:1px solid var(--border);background:var(--surface-2);
+    padding:11px 16px;border-radius:10px;font-size:14.5px;
+  }
+  .choice:has(input:checked){
+    border-color:var(--accent);
+    background:color-mix(in srgb, var(--accent) 12%, transparent);
+  }
+  .check{display:flex;gap:10px;align-items:flex-start;font-size:14px;font-weight:400;color:var(--muted)}
+  .check input{margin-top:3px;flex:0 0 auto}
+  .submit-area{margin-top:24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .submit-area .btn{padding:14px 30px}
+  .form-note{font-size:13px;color:var(--muted);margin:14px 0 0}
+  .alert{
+    display:none;margin:0 0 20px;padding:13px 16px;border-radius:10px;font-size:14.5px;
+    border:1px solid var(--err);color:var(--err);
+    background:color-mix(in srgb, var(--err) 10%, transparent);
+  }
+  .alert.on{display:block}
+
+  /* ---------- success ---------- */
+  .success{display:none;text-align:center;padding:22px 4px}
+  .success.on{display:block}
+  .success .mark{
+    width:62px;height:62px;border-radius:50%;margin:0 auto 20px;
+    display:grid;place-items:center;font-size:30px;
+    background:color-mix(in srgb, var(--ok) 16%, transparent);color:var(--ok);
+    border:1px solid color-mix(in srgb, var(--ok) 45%, transparent);
+  }
+  .success h2{margin:0 0 10px}
+  .success p{color:var(--muted);margin:0 auto 22px;max-width:46ch}
+
+  /* ---------- aside ---------- */
+  aside .card + .card{margin-top:20px}
+  .agenda{list-style:none;margin:0;padding:0}
+  .agenda li{display:flex;gap:14px;padding:12px 0;border-top:1px solid var(--border)}
+  .agenda li:first-child{border-top:0;padding-top:0}
+  .agenda time{flex:0 0 62px;font-variant-numeric:tabular-nums;font-weight:600;font-size:14px;color:var(--accent)}
+  .agenda .t{font-size:14.5px}
+  .agenda .t small{display:block;color:var(--muted)}
+
+  footer{border-top:1px solid var(--border);padding:28px 0;color:var(--muted);font-size:14px}
+  footer .wrap{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+  /* ---------- painel de inscrições ---------- */
+  #admin{display:none;padding:0 0 80px}
+  #admin.on{display:block}
+  .table-scroll{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:720px}
+  th,td{text-align:left;padding:11px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+  th{background:var(--surface-2);font-size:12.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)}
+  tr:last-child td{border-bottom:0}
+  .admin-head{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+  .admin-head h2{margin:0;margin-right:auto;font-size:1.3rem}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <div class="brand">Nome do <span>Evento</span></div>
+    <a class="btn" href="#inscricao">Quero me inscrever</a>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <span class="eyebrow" id="ev-badge">Vagas limitadas</span>
+      <h1 id="ev-title">Título do evento vai aqui</h1>
+      <p class="lead" id="ev-desc">
+        Uma ou duas frases explicando para quem é o evento e o que a pessoa leva de valor ao participar.
+      </p>
+      <ul class="facts">
+        <li>📅 <span><b>Data</b><span id="ev-date">—</span></span></li>
+        <li>🕒 <span><b>Horário</b><span id="ev-time">—</span></span></li>
+        <li>📍 <span><b>Local</b><span id="ev-place">—</span></span></li>
+        <li>💳 <span><b>Investimento</b><span id="ev-price">—</span></span></li>
+      </ul>
+      <div class="hero-cta">
+        <a class="btn" href="#inscricao">Garantir minha vaga</a>
+        <p class="seats" id="seats"></p>
+      </div>
+    </div>
+  </section>
+
+  <div class="wrap grid">
+    <!-- ============ FORMULÁRIO ============ -->
+    <section class="card" id="inscricao">
+      <div id="formView">
+        <h2>Formulário de inscrição</h2>
+        <p class="sub">Leva menos de um minuto. Você recebe a confirmação por e-mail.</p>
+
+        <div class="alert" id="formAlert" role="alert"></div>
+
+        <form id="regForm" novalidate>
+          <div class="field">
+            <label for="nome">Nome completo</label>
+            <input id="nome" name="nome" type="text" autocomplete="name" required
+                   aria-describedby="err-nome" placeholder="Como você quer ser chamado no crachá">
+            <p class="error" id="err-nome">Informe seu nome completo.</p>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input id="email" name="email" type="email" autocomplete="email" required
+                     inputmode="email" aria-describedby="err-email" placeholder="voce@email.com">
+              <p class="error" id="err-email">Informe um e-mail válido.</p>
+            </div>
+            <div class="field">
+              <label for="telefone">WhatsApp</label>
+              <input id="telefone" name="telefone" type="tel" autocomplete="tel" required
+                     inputmode="tel" maxlength="16" aria-describedby="err-telefone"
+                     placeholder="(00) 00000-0000">
+              <p class="error" id="err-telefone">Informe um telefone com DDD.</p>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="field">
+              <label for="organizacao">Empresa / instituição <span class="opt">(opcional)</span></label>
+              <input id="organizacao" name="organizacao" type="text" autocomplete="organization">
+            </div>
+            <div class="field">
+              <label for="cargo">Cargo / atuação <span class="opt">(opcional)</span></label>
+              <input id="cargo" name="cargo" type="text" autocomplete="organization-title">
+            </div>
+          </div>
+
+          <fieldset>
+            <legend>Como pretende participar?</legend>
+            <div class="choices">
+              <label class="choice"><input type="radio" name="modalidade" value="Presencial" checked> Presencial</label>
+              <label class="choice"><input type="radio" name="modalidade" value="Online"> Online</label>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label for="origem">Como você soube do evento?</label>
+            <select id="origem" name="origem" required aria-describedby="err-origem">
+              <option value="">Selecione uma opção</option>
+              <option>Instagram</option>
+              <option>LinkedIn</option>
+              <option>WhatsApp</option>
+              <option>E-mail / newsletter</option>
+              <option>Indicação de amigo</option>
+              <option>Busca no Google</option>
+              <option>Outro</option>
+            </select>
+            <p class="error" id="err-origem">Escolha uma opção.</p>
+          </div>
+
+          <div class="field">
+            <label for="obs">Alguma observação, restrição alimentar ou necessidade de acessibilidade? <span class="opt">(opcional)</span></label>
+            <textarea id="obs" name="obs" maxlength="500"></textarea>
+          </div>
+
+          <div class="field">
+            <label class="check" for="termos">
+              <input id="termos" name="termos" type="checkbox" required aria-describedby="err-termos">
+              <span>Autorizo o uso dos meus dados para comunicações sobre este evento, conforme a
+              <a href="#privacidade">política de privacidade</a>.</span>
+            </label>
+            <p class="error" id="err-termos">É necessário aceitar para concluir a inscrição.</p>
+          </div>
+
+          <div class="submit-area">
+            <button class="btn" type="submit" id="submitBtn">Confirmar inscrição</button>
+            <span class="seats" id="submitHint"></span>
+          </div>
+          <p class="form-note">Seus dados não são compartilhados com terceiros.</p>
+        </form>
+      </div>
+
+      <div class="success" id="successView" role="status" aria-live="polite">
+        <div class="mark">✓</div>
+        <h2>Inscrição confirmada!</h2>
+        <p id="successMsg">Enviamos os detalhes para o seu e-mail. Guarde a data e chegue com 15 minutos de antecedência.</p>
+        <button class="btn ghost" type="button" id="againBtn">Inscrever outra pessoa</button>
+      </div>
+    </section>
+
+    <!-- ============ COLUNA LATERAL ============ -->
+    <aside>
+      <div class="card">
+        <h2>Programação</h2>
+        <p class="sub">Sujeita a pequenos ajustes.</p>
+        <ul class="agenda">
+          <li><time>19:00</time><span class="t">Credenciamento e café<small>Recepção dos participantes</small></span></li>
+          <li><time>19:30</time><span class="t">Abertura<small>Boas-vindas e contexto</small></span></li>
+          <li><time>20:00</time><span class="t">Conteúdo principal<small>Apresentação e casos práticos</small></span></li>
+          <li><time>21:00</time><span class="t">Perguntas e networking<small>Espaço aberto</small></span></li>
+        </ul>
+      </div>
+
+      <div class="card" id="privacidade">
+        <h2>Perguntas frequentes</h2>
+        <p class="sub" style="margin-bottom:14px">O essencial antes de se inscrever.</p>
+        <p style="font-size:14.5px;color:var(--muted);margin:0 0 12px">
+          <strong style="color:var(--text)">Recebo certificado?</strong><br>
+          Sim, enviado por e-mail em até 5 dias úteis após o evento.
+        </p>
+        <p style="font-size:14.5px;color:var(--muted);margin:0 0 12px">
+          <strong style="color:var(--text)">Posso transferir minha vaga?</strong><br>
+          Sim, basta responder ao e-mail de confirmação com os dados da outra pessoa.
+        </p>
+        <p style="font-size:14.5px;color:var(--muted);margin:0">
+          <strong style="color:var(--text)">Como meus dados são usados?</strong><br>
+          Apenas para organizar o evento e enviar comunicados relacionados. Você pode pedir a
+          exclusão a qualquer momento respondendo ao e-mail de confirmação.
+        </p>
+      </div>
+    </aside>
+  </div>
+
+  <!-- ============ PAINEL DE INSCRIÇÕES (organizador) ============ -->
+  <section id="admin" class="wrap" aria-label="Painel de inscrições">
+    <div class="admin-head">
+      <h2>Inscrições recebidas (<span id="count">0</span>)</h2>
+      <button class="btn ghost" type="button" id="exportBtn">Baixar CSV</button>
+      <button class="btn ghost" type="button" id="clearBtn">Limpar tudo</button>
+    </div>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr><th>Data</th><th>Nome</th><th>E-mail</th><th>WhatsApp</th><th>Organização</th>
+              <th>Cargo</th><th>Modalidade</th><th>Origem</th><th>Observações</th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <p class="form-note">
+      Estes registros ficam salvos apenas neste navegador (fallback local). Configure
+      <code>CONFIG.endpoint</code> para enviá-los a um servidor ou planilha.
+    </p>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© <span id="year"></span> Nome do Evento. Todos os direitos reservados.</span>
+    <span>Dúvidas: <a href="mailto:contato@exemplo.com">contato@exemplo.com</a></span>
+  </div>
+</footer>
+
+<script>
+/* =========================================================================
+   CONFIGURAÇÃO — edite apenas este bloco para adaptar ao seu evento
+   ========================================================================= */
+const CONFIG = {
+  nome:      "Nome do Evento",
+  titulo:    "Título do evento vai aqui",
+  descricao: "Uma ou duas frases explicando para quem é o evento e o que a pessoa leva de valor ao participar.",
+  selo:      "Vagas limitadas",
+  data:      "12 de setembro de 2026",
+  horario:   "19h às 21h30",
+  local:     "Auditório — Rua Exemplo, 123, Vitória/ES",
+  preco:     "Gratuito",
+  vagas:     80,          // total de vagas; use null para não exibir contador
+  contato:   "contato@exemplo.com",
+
+  // Para onde enviar as inscrições.
+  // null  -> salva no navegador (localStorage) e mostra no painel de inscrições
+  // string-> URL que recebe POST com JSON (Google Apps Script, Formspree, sua API...)
+  endpoint:  null,
+
+  // Mensagem exibida após o envio bem-sucedido
+  mensagemSucesso: "Enviamos os detalhes para o seu e-mail. Guarde a data e chegue com 15 minutos de antecedência."
+};
+
+/* =========================================================================
+   Aplica a configuração na página
+   ========================================================================= */
+const $  = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+
+document.title = "Inscrições — " + CONFIG.nome;
+$(".brand").textContent = CONFIG.nome;
+$("#ev-badge").textContent = CONFIG.selo;
+$("#ev-title").textContent = CONFIG.titulo;
+$("#ev-desc").textContent  = CONFIG.descricao;
+$("#ev-date").textContent  = CONFIG.data;
+$("#ev-time").textContent  = CONFIG.horario;
+$("#ev-place").textContent = CONFIG.local;
+$("#ev-price").textContent = CONFIG.preco;
+$("#successMsg").textContent = CONFIG.mensagemSucesso;
+$("#year").textContent = new Date().getFullYear();
+$("footer a").textContent = CONFIG.contato;
+$("footer a").href = "mailto:" + CONFIG.contato;
+
+/* =========================================================================
+   Armazenamento local (fallback e painel do organizador)
+   ========================================================================= */
+const STORE = "inscricoes:" + CONFIG.nome;
+
+function load(){
+  try { return JSON.parse(localStorage.getItem(STORE)) || []; }
+  catch { return []; }
+}
+function save(list){
+  try { localStorage.setItem(STORE, JSON.stringify(list)); return true; }
+  catch { return false; }
+}
+
+function updateSeats(){
+  if (CONFIG.vagas == null) return;
+  const restantes = Math.max(0, CONFIG.vagas - load().length);
+  const txt = `<strong>${restantes}</strong> de ${CONFIG.vagas} vagas disponíveis`;
+  $("#seats").innerHTML = txt;
+  $("#submitHint").innerHTML = restantes > 0 ? txt : "<strong>Lista de espera</strong>";
+}
+
+/* =========================================================================
+   Máscara de telefone brasileiro
+   ========================================================================= */
+$("#telefone").addEventListener("input", e => {
+  const d = e.target.value.replace(/\D/g, "").slice(0, 11);
+  let out = d;
+  if (d.length > 2)  out = `(${d.slice(0,2)}) ${d.slice(2)}`;
+  if (d.length > 6)  out = d.length === 11
+    ? `(${d.slice(0,2)}) ${d.slice(2,7)}-${d.slice(7)}`
+    : `(${d.slice(0,2)}) ${d.slice(2,6)}-${d.slice(6)}`;
+  e.target.value = out;
+});
+
+/* =========================================================================
+   Validação
+   ========================================================================= */
+const form = $("#regForm");
+
+const rules = {
+  nome:     v => v.trim().split(/\s+/).length >= 2 && v.trim().length >= 5,
+  email:    v => /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i.test(v.trim()),
+  telefone: v => v.replace(/\D/g, "").length >= 10,
+  origem:   v => v !== "",
+  termos:   (_, el) => el.checked
+};
+
+function validateField(el){
+  const rule = rules[el.name];
+  if (!rule) return true;
+  const ok = rule(el.value, el);
+  el.setAttribute("aria-invalid", ok ? "false" : "true");
+  return ok;
+}
+
+$$("#regForm [name]").forEach(el => {
+  el.addEventListener("blur", () => { if (el.value || el.type === "checkbox") validateField(el); });
+  el.addEventListener("input", () => {
+    if (el.getAttribute("aria-invalid") === "true") validateField(el);
+  });
+});
+
+function showAlert(msg){
+  const a = $("#formAlert");
+  a.textContent = msg;
+  a.classList.add("on");
+}
+function hideAlert(){ $("#formAlert").classList.remove("on"); }
+
+/* =========================================================================
+   Envio
+   ========================================================================= */
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  hideAlert();
+
+  const campos = ["nome", "email", "telefone", "origem", "termos"].map(n => form.elements[n]);
+  const invalidos = campos.filter(el => !validateField(el));
+  if (invalidos.length){
+    showAlert("Revise os campos destacados para continuar.");
+    invalidos[0].focus();
+    return;
+  }
+
+  const dados = {
+    nome:        form.nome.value.trim(),
+    email:       form.email.value.trim().toLowerCase(),
+    telefone:    form.telefone.value.trim(),
+    organizacao: form.organizacao.value.trim(),
+    cargo:       form.cargo.value.trim(),
+    modalidade:  form.modalidade.value,
+    origem:      form.origem.value,
+    obs:         form.obs.value.trim(),
+    evento:      CONFIG.nome,
+    criadoEm:    new Date().toISOString()
+  };
+
+  const btn = $("#submitBtn");
+  btn.disabled = true;
+  btn.textContent = "Enviando...";
+
+  try {
+    if (CONFIG.endpoint){
+      const res = await fetch(CONFIG.endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(dados)
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+    } else {
+      const list = load();
+      if (list.some(i => i.email === dados.email)){
+        throw new Error("DUPLICADO");
+      }
+      list.push(dados);
+      if (!save(list)) throw new Error("STORAGE");
+    }
+
+    form.reset();
+    $$("#regForm [aria-invalid]").forEach(el => el.setAttribute("aria-invalid", "false"));
+    $("#formView").style.display = "none";
+    $("#successView").classList.add("on");
+    $("#successView").scrollIntoView({ block: "center" });
+    updateSeats();
+    renderAdmin();
+
+  } catch (err){
+    if (err.message === "DUPLICADO"){
+      showAlert("Este e-mail já está inscrito. Verifique sua caixa de entrada.");
+    } else {
+      showAlert("Não conseguimos registrar sua inscrição agora. Tente novamente ou escreva para " + CONFIG.contato + ".");
+    }
+  } finally {
+    btn.disabled = false;
+    btn.textContent = "Confirmar inscrição";
+  }
+});
+
+$("#againBtn").addEventListener("click", () => {
+  $("#successView").classList.remove("on");
+  $("#formView").style.display = "";
+  $("#nome").focus();
+});
+
+/* =========================================================================
+   Painel do organizador — abra com ?admin na URL
+   ========================================================================= */
+const COLS = ["criadoEm","nome","email","telefone","organizacao","cargo","modalidade","origem","obs"];
+
+function renderAdmin(){
+  const list = load();
+  $("#count").textContent = list.length;
+  $("#rows").innerHTML = list.map(i => "<tr>" + COLS.map(c => {
+    let v = i[c] || "";
+    if (c === "criadoEm" && v) v = new Date(v).toLocaleString("pt-BR");
+    const div = document.createElement("div");
+    div.textContent = v;
+    return "<td>" + div.innerHTML + "</td>";
+  }).join("") + "</tr>").join("");
+}
+
+function toCSV(list){
+  const cell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const head = ["Data","Nome","E-mail","WhatsApp","Organizacao","Cargo","Modalidade","Origem","Observacoes"];
+  return "﻿" + [head, ...list.map(i => COLS.map(c => i[c]))]
+    .map(r => r.map(cell).join(";")).join("\r\n");
+}
+
+$("#exportBtn").addEventListener("click", () => {
+  const list = load();
+  if (!list.length) return alert("Nenhuma inscrição registrada neste navegador.");
+  const url = URL.createObjectURL(new Blob([toCSV(list)], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "inscricoes-" + new Date().toISOString().slice(0, 10) + ".csv";
+  a.click();
+  URL.revokeObjectURL(url);
+});
+
+$("#clearBtn").addEventListener("click", () => {
+  if (!confirm("Apagar todas as inscrições salvas neste navegador? Não há como desfazer.")) return;
+  localStorage.removeItem(STORE);
+  renderAdmin();
+  updateSeats();
+});
+
+if (new URLSearchParams(location.search).has("admin")){
+  $("#admin").classList.add("on");
+}
+
+renderAdmin();
+updateSeats();
+</script>
+</body>
+</html>
