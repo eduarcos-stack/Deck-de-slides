@@ -354,6 +354,43 @@ a { color: inherit; }
 .form-status[data-tipo="sucesso"] { display: flex; background: var(--surface-alt); color: var(--primary-container); border: 1px solid var(--success); }
 .form-status .rotulo { font-weight: 600; }
 
+/* ---------- Modal de confirmação de envio ---------- */
+#modal-sucesso {
+  border: none; padding: 0; background: transparent;
+  max-width: 480px; width: calc(100% - 2 * var(--s-lg));
+  color: var(--on-surface);
+}
+#modal-sucesso::backdrop { background: rgba(11, 29, 51, 0.62); }
+
+.modal-corpo {
+  background: var(--surface); border-radius: var(--r-xl);
+  padding: var(--s-2xl) var(--s-xl) var(--s-xl);
+  text-align: center; box-shadow: 0 24px 60px rgba(11, 29, 51, 0.28);
+}
+
+.modal-icone {
+  width: 64px; height: 64px; margin: 0 auto var(--s-lg);
+  border-radius: 50%; background: var(--primary-container); color: var(--on-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-icone svg { width: 30px; height: 30px; }
+
+#modal-titulo { font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; color: var(--primary); }
+.modal-texto { margin-top: var(--s-sm); font-size: 16px; color: var(--on-surface); }
+.modal-nota { margin-top: var(--s-md); font-size: 13px; line-height: 1.5; color: var(--muted-aa); }
+.modal-nota a { color: var(--secondary); font-weight: 600; }
+#modal-fechar { margin-top: var(--s-lg); }
+
+/* Entrada curta: confirma sem atrasar. Anulada para quem pede menos movimento. */
+#modal-sucesso[open] .modal-corpo { animation: modal-entra 180ms ease-out; }
+@keyframes modal-entra {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #modal-sucesso[open] .modal-corpo { animation: none; }
+}
+
 /* Armadilha anti-robô. Fora da tela em vez de display:none — parte dos robôs
    ignora campo oculto, mas preenche o que existe no HTML. Invisível para quem
    enxerga, e retirado do foco e do leitor de tela pelo tabindex/aria no HTML. */
@@ -1012,6 +1049,35 @@ a { color: inherit; }
   </div>
 </footer>
 
+<!-- Confirmação de envio. <dialog> nativo: traz travamento de foco, fechamento
+     por Esc e inerte no resto da página, sem biblioteca. -->
+<dialog id="modal-sucesso" aria-labelledby="modal-titulo">
+  <div class="modal-corpo">
+    <div class="modal-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    </div>
+
+    <h2 id="modal-titulo">Interesse registrado</h2>
+
+    <p class="modal-texto">
+      Recebemos seu registro. Você passa a receber as novidades da GLAUX no e-mail
+      informado — lançamentos de formações, conteúdos e eventos.
+    </p>
+
+    <p class="modal-nota">
+      Não há envio frequente e nenhum dado é compartilhado com terceiros. Para corrigir
+      ou excluir suas informações, escreva para
+      <a href="mailto:contato@glauxconecta.com.br">contato@glauxconecta.com.br</a>
+      ou consulte a <a href="privacidade.html">Política de Privacidade</a>.
+    </p>
+
+    <button type="button" class="btn btn-primario btn-bloco" id="modal-fechar" autofocus>Fechar</button>
+  </div>
+</dialog>
+
 <script>
 (function () {
   "use strict";
@@ -1201,11 +1267,49 @@ a { color: inherit; }
       return primeiroInvalido;
     }
 
+    var modal = document.getElementById("modal-sucesso");
+
+    function confirmarEnvio() {
+      // Sem <dialog> (navegador antigo), cai na mensagem em linha — o visitante
+      // recebe confirmação de qualquer forma.
+      if (!modal || typeof modal.showModal !== "function") {
+        mostrarStatus("sucesso", "Interesse registrado.",
+          "Você passa a receber as novidades da GLAUX no e-mail informado.");
+        return;
+      }
+      status.removeAttribute("data-tipo");
+      modal.showModal();
+    }
+
+    if (modal) {
+      document.getElementById("modal-fechar").addEventListener("click", function () {
+        modal.close();
+      });
+
+      // Clique fora do cartão fecha. O <dialog> recebe o clique do backdrop,
+      // então comparar o alvo com o próprio elemento distingue dentro de fora.
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) modal.close();
+      });
+
+      // Devolve o foco ao botão de envio ao fechar, para quem navega por teclado
+      // não voltar ao topo do documento.
+      modal.addEventListener("close", function () {
+        botao.focus();
+      });
+    }
+
     function mostrarStatus(tipo, rotulo, texto) {
       status.setAttribute("data-tipo", tipo);
       status.innerHTML = '<span class="rotulo"></span><span class="corpo"></span>';
       status.querySelector(".rotulo").textContent = rotulo + " ";
       status.querySelector(".corpo").textContent = texto;
+
+      // O formulário é longo: em tela pequena a mensagem pode nascer fora da
+      // área visível. Sem isto, o envio parece não ter feito nada.
+      // Respeita quem pediu menos movimento no sistema operacional.
+      var suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      status.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "center" });
     }
 
     form.addEventListener("submit", function (e) {
@@ -1243,8 +1347,10 @@ a { color: inherit; }
         email: form.email.value.trim(),
         organizacao: form.organizacao.value.trim(),
         area: form.area.value.trim(),
-        tema: form.tema.value,
-        formato: form.formato.value,
+        // Envia o rótulo visível ("Inteligência artificial"), não o value
+        // ("inteligencia-artificial"): quem lê a planilha é pessoa, não código.
+        tema: form.tema.options[form.tema.selectedIndex].text.trim(),
+        formato: form.formato.options[form.formato.selectedIndex].text.trim(),
         mensagem: form.mensagem.value.trim(),
         consentimento: form.consentimento.checked,
         website: form.website.value,       // armadilha anti-robô
@@ -1272,8 +1378,7 @@ a { color: inherit; }
             throw new Error(resposta && resposta.erro ? resposta.erro : "Resposta inesperada.");
           }
 
-          mostrarStatus("sucesso", "Interesse registrado.",
-            "As informações serão usadas apenas para comunicar novidades e compreender melhor as necessidades de aprendizagem do público da GLAUX.");
+          confirmarEnvio();
 
           form.reset();
           regras.forEach(function (r) {
