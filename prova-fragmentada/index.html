@@ -366,7 +366,11 @@ img { display: block; max-width: 100%; }
       })
       .then(function (resposta) {
         if (!resposta || resposta.ok !== true) {
-          throw new Error(resposta && resposta.erro ? resposta.erro : "Resposta inesperada.");
+          // Erro devolvido pelo servidor: a mensagem já vem sanitizada e é
+          // acionável. Marcada para não virar "verifique sua conexão".
+          var e = new Error(resposta && resposta.erro ? resposta.erro : "Resposta inesperada.");
+          e.doServidor = true;
+          throw e;
         }
         mostrar("sucesso", "Cadastro confirmado.",
           "O material será enviado para o e-mail informado após a palestra.");
@@ -378,8 +382,16 @@ img { display: block; max-width: 100%; }
       })
       .catch(function (err) {
         console.error("Falha no envio:", err);
-        mostrar("erro", "Não foi possível enviar.",
-          "Verifique sua conexão e tente novamente.");
+
+        if (err && err.doServidor) {
+          mostrar("erro", "Não foi possível enviar:", err.message);
+        } else if (err && err.name === "AbortError") {
+          mostrar("erro", "O envio demorou demais.",
+            "Verifique sua conexão e tente novamente.");
+        } else {
+          mostrar("erro", "Não foi possível enviar.",
+            "Verifique sua conexão e tente novamente.");
+        }
       })
       .then(function () {
         clearTimeout(expirou);
