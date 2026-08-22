@@ -30,6 +30,24 @@ var COLUNAS = [
   'Tema', 'Formato', 'Mensagem', 'Consentimento', 'Origem'
 ];
 
+// ------------------------------------------------- lista de material da palestra
+// Segunda lista, com campos próprios. O envio traz lista: 'palestra'.
+// Sem esse campo, o comportamento é exatamente o de antes.
+
+var ABA_PALESTRA = 'Palestra — Prova fragmentada';
+
+var COLUNAS_PALESTRA = [
+  'Data/hora', 'Nome', 'E-mail', 'WhatsApp', 'Consentimento', 'Origem'
+];
+
+/** Descreve cada lista num só lugar, para não espalhar condicionais. */
+function config(lista) {
+  if (lista === 'palestra') {
+    return { aba: ABA_PALESTRA, colunas: COLUNAS_PALESTRA };
+  }
+  return { aba: ABA, colunas: COLUNAS };
+}
+
 // ---------------------------------------------------------------- entrada
 
 function doPost(e) {
@@ -86,8 +104,14 @@ function validar(d) {
   var faltando = [];
   if (!texto(d.nome)) faltando.push('nome');
   if (!emailValido(d.email)) faltando.push('e-mail');
-  if (!texto(d.tema)) faltando.push('tema');
-  if (!texto(d.formato)) faltando.push('formato');
+
+  // WhatsApp é opcional de propósito: o briefing veda telefone obrigatório,
+  // e o material é entregue por e-mail.
+  if (d.lista !== 'palestra') {
+    if (!texto(d.tema)) faltando.push('tema');
+    if (!texto(d.formato)) faltando.push('formato');
+  }
+
   if (d.consentimento !== true) faltando.push('consentimento');
   return faltando;
 }
@@ -108,27 +132,39 @@ function gravar(d) {
   trava.waitLock(20000);
 
   try {
-    var aba = abaDestino();
+    var c = config(d.lista);
+    var aba = abaDestino(c.aba, c.colunas);
 
-    aba.appendRow([
-      new Date(),
-      limpar(d.nome),
-      limpar(d.email).toLowerCase(),
-      limpar(d.organizacao),
-      limpar(d.area),
-      limpar(d.tema),
-      limpar(d.formato),
-      limpar(d.mensagem),
-      'Sim',
-      limpar(d.origem)
-    ]);
+    if (d.lista === 'palestra') {
+      aba.appendRow([
+        new Date(),
+        limpar(d.nome),
+        limpar(d.email).toLowerCase(),
+        limpar(d.whatsapp),
+        'Sim',
+        limpar(d.origem)
+      ]);
+    } else {
+      aba.appendRow([
+        new Date(),
+        limpar(d.nome),
+        limpar(d.email).toLowerCase(),
+        limpar(d.organizacao),
+        limpar(d.area),
+        limpar(d.tema),
+        limpar(d.formato),
+        limpar(d.mensagem),
+        'Sim',
+        limpar(d.origem)
+      ]);
+    }
 
   } finally {
     trava.releaseLock();
   }
 }
 
-function abaDestino() {
+function abaDestino(nomeAba, colunas) {
   if (!PLANILHA_ID || PLANILHA_ID.indexOf('COLE_AQUI') === 0) {
     throw new Error('PLANILHA_ID não foi preenchido no Codigo.gs.');
   }
@@ -144,15 +180,15 @@ function abaDestino() {
     );
   }
 
-  var aba = planilha.getSheetByName(ABA);
+  var aba = planilha.getSheetByName(nomeAba);
 
   if (!aba) {
-    aba = planilha.insertSheet(ABA);
+    aba = planilha.insertSheet(nomeAba);
   }
 
   if (aba.getLastRow() === 0) {
-    aba.appendRow(COLUNAS);
-    aba.getRange(1, 1, 1, COLUNAS.length).setFontWeight('bold');
+    aba.appendRow(colunas);
+    aba.getRange(1, 1, 1, colunas.length).setFontWeight('bold');
     aba.setFrozenRows(1);
   }
 
@@ -175,6 +211,20 @@ function notificar(d) {
   if (!NOTIFICAR_EMAIL) return;
 
   try {
+    if (d.lista === 'palestra') {
+      MailApp.sendEmail({
+        to: NOTIFICAR_EMAIL,
+        subject: 'GLAUX — inscrição no material da palestra: ' + limpar(d.nome),
+        body: [
+          'Nome: ' + limpar(d.nome),
+          'E-mail: ' + limpar(d.email),
+          'WhatsApp: ' + (limpar(d.whatsapp) || '—'),
+          'Origem: ' + limpar(d.origem)
+        ].join('\n')
+      });
+      return;
+    }
+
     MailApp.sendEmail({
       to: NOTIFICAR_EMAIL,
       subject: 'GLAUX — novo registro de interesse: ' + limpar(d.nome),
