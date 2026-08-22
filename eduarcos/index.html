@@ -95,9 +95,16 @@ a:focus-visible {
 
 h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: center; }
 
+/* Linha de credenciais — lastro de autoridade, peso maior que o papel na marca.
+   [VALIDAR DOCUMENTALMENTE ANTES DA PUBLICAÇÃO: cargos e vínculo PPGCI/UFES] */
+.credenciais {
+  margin-top: 10px; text-align: center; max-width: 34ch;
+  font-size: 14px; line-height: 1.5; color: var(--on-primary);
+}
+
 .papel {
-  margin-top: 8px; text-align: center;
-  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  margin-top: 10px; text-align: center;
+  font-size: 11px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase;
   color: var(--on-dark-soft);
 }
 
@@ -113,6 +120,22 @@ h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: ce
   transition: background-color .18s ease, border-color .18s ease;
 }
 .canal:hover { background: rgba(126, 163, 152, 0.14); border-color: var(--secondary-soft); }
+
+/* Escada de compromisso: contexto → isca → conversão.
+   Os dois primeiros ficam discretos; o Cadastro é outline; o Diagnóstico é sólido. */
+.canal--contexto { border-color: var(--linha); background: transparent; }
+
+.canal--isca { border-color: var(--secondary-soft); border-width: 1.5px; }
+.canal--isca:hover { background: rgba(126, 163, 152, 0.18); }
+
+.canal--destaque { background: var(--secondary); border-color: var(--secondary); }
+.canal--destaque:hover { background: #245A53; border-color: #245A53; }
+/* Especificidade dobrada de propósito: as regras base .canal .icone e
+   .canal .apoio aparecem depois deste bloco e venceriam por ordem. */
+.canal.canal--destaque .icone,
+.canal.canal--destaque .seta { color: var(--on-primary); }
+/* Sobre o verde sólido o tom auxiliar cairia para 3.1:1 — usa branco suave. */
+.canal.canal--destaque .apoio { color: rgba(255, 255, 255, 0.88); }
 
 .canal .icone { flex: none; width: 22px; height: 22px; color: var(--secondary-soft); }
 .canal .texto { flex: 1; min-width: 0; }
@@ -148,20 +171,21 @@ h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: ce
   <img class="retrato" src="assets/coordenacao-eduardo-arcos.jpg" alt="Retrato de Eduardo Arcos" width="104" height="104" />
 
   <h1>Eduardo Arcos</h1>
+  <p class="credenciais">Delegado de Polícia Civil · Professor de Direito Penal · Pesquisador PPGCI/UFES</p>
   <p class="papel">Coordenação acadêmica · GLAUX</p>
 
   <nav class="canais" aria-label="Canais verificados">
     <ul>
       <li>
-        <a class="canal" href="https://www.instagram.com/profeduardoarcos/">
+        <a class="canal canal--contexto" href="https://www.instagram.com/profeduardoarcos/">
           <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" rx="5" />
             <circle cx="12" cy="12" r="4" />
             <circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none" />
           </svg>
           <span class="texto">
-            <span class="rotulo">Instagram</span>
-            <span class="apoio">@profeduardoarcos</span>
+            <span class="rotulo">Bastidores e conteúdo diário</span>
+            <span class="apoio">Instagram @profeduardoarcos</span>
           </span>
           <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M9 6l6 6-6 6" />
@@ -170,7 +194,7 @@ h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: ce
       </li>
 
       <li>
-        <a class="canal" href="https://glauxconecta.com.br/">
+        <a class="canal canal--contexto" href="https://glauxconecta.com.br/">
           <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <rect x="3" y="3" width="18" height="18" />
             <path d="M3 9h18M9 9v12" />
@@ -185,19 +209,42 @@ h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: ce
         </a>
       </li>
 
+      <!-- ===== 3º link — isca de IA jurídica =====================================
+           PENDENTE DE DESTINO. Descomente e troque INSERIR_URL quando a rota
+           estiver definida (Growth Tool do ManyChat ou microlanding no Lovable).
+           Fica fora do ar até lá: botão sem URL numa página já publicada é
+           link morto para quem escaneia o QR.
+
+      <li>
+        <a class="canal canal--isca" href="INSERIR_URL">
+          <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M4 6h16v12H4z" />
+            <path d="M4 7l8 6 8-6" />
+          </svg>
+          <span class="texto">
+            <span class="rotulo">Quer aprender a usar IA no Direito, sem gambiarra?</span>
+            <span class="apoio">Cadastre-se e receba, sem custo, um material prático sobre IA aplicada à rotina jurídica</span>
+          </span>
+          <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      </li>
+      ===================================================================== -->
+
       <li>
         <!-- URL nativa do Lovable: diagnostico.glauxconecta.com.br ainda não
              existe e o domínio próprio depende do plano da workspace. Trocar
              aqui quando o subdomínio estiver no ar. -->
-        <a class="canal" href="https://duo-pathfinder.lovable.app/">
+        <a class="canal canal--destaque" href="https://duo-pathfinder.lovable.app/">
           <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
             <path d="M4 20h16" />
             <path d="M4 20V12M10 20V7M16 20v-5" />
             <circle cx="16" cy="11" r="2" fill="currentColor" stroke="none" />
           </svg>
           <span class="texto">
-            <span class="rotulo">Diagnóstico operacional</span>
-            <span class="apoio">Processos, tempo e maturidade digital do escritório</span>
+            <span class="rotulo">Você advoga ou tem escritório?</span>
+            <span class="apoio">Diagnóstico gratuito: descubra em poucos minutos onde sua rotina jurídica está perdendo tempo por falta de IA</span>
           </span>
           <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
             <path d="M9 6l6 6-6 6" />
