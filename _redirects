@@ -1,0 +1,14 @@
+# Plano B para o QR do evento.
+#
+# Serve a página de canais em eduarcos.glauxconecta.com.br a partir do site
+# principal (glaux), que já é público. Usado apenas se o site separado
+# "eduarcos" continuar exigindo login de equipe.
+#
+# A regra casa somente com aquele host: glauxconecta.com.br não é afetado.
+# Enquanto o subdomínio não existir, esta linha não faz nada.
+#
+# Se o site separado voltar a funcionar, remova este arquivo e aponte o
+# CNAME para eduarcos.netlify.app.
+
+https://eduarcos.glauxconecta.com.br/*  /eduarcos/:splat  200!
+http://eduarcos.glauxconecta.com.br/*   /eduarcos/:splat  200!
