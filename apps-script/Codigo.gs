@@ -39,7 +39,7 @@
  * ID da planilha mestre.
  * É somente o trecho entre /d/ e /edit na URL da planilha.
  */
-var PLANILHA_ID = '1vXrvtdQ5ThfQI59Fhmde-Sc9kPWLEk-SCMrnNhFkBIs';
+var PLANILHA_ID = '1n207Ec8pKOILdMsrsxCn5kGTYZ8vn9paqopP2041HrI';
 
 /**
  * E-mail que receberá aviso de novos registros.
@@ -283,7 +283,7 @@ function doPost(e) {
  * {
  *   "ok": true,
  *   "servico": "GLAUX — registro de interesse",
- *   "versao": "2.0"
+ *   "versao": "2.1"
  * }
  *
  * O campo "versao" é o jeito rápido de saber se a implantação
@@ -295,7 +295,7 @@ function doGet() {
   return json({
     ok: true,
     servico: 'GLAUX — registro de interesse',
-    versao: '2.0'
+    versao: '2.1'
   });
 }
 
