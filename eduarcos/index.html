@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Eduardo Arcos | GLAUX</title>
+<meta name="description" content="Canais verificados de Eduardo Arcos, coordenação acadêmica da GLAUX — instituição de educação aplicada em tecnologia, investigação e evidência." />
+<!-- Página de acesso rápido por QR code em evento. Não indexar: é um atalho
+     circunstancial, não uma página institucional. A landing é a canônica. -->
+<meta name="robots" content="noindex,follow" />
+<link rel="canonical" href="https://eduarcos.glauxconecta.com.br/" />
+
+<meta property="og:type" content="profile" />
+<meta property="og:title" content="Eduardo Arcos | GLAUX" />
+<meta property="og:description" content="Canais verificados de Eduardo Arcos, coordenação acadêmica da GLAUX." />
+<meta property="og:url" content="https://eduarcos.glauxconecta.com.br/" />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:site_name" content="GLAUX" />
+
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================================
+   GLAUX — página de canais (eduarcos.glauxconecta.com.br)
+   Mesmos tokens do DESIGN2.md usados na landing institucional.
+   ========================================================================= */
+:root {
+  --primary: #0B1D33;
+  --primary-container: #15403D;
+  --secondary: #2D6B63;
+  --secondary-soft: #7EA398;
+  --neutral: #E6E8E4;
+  --on-primary: #FFFFFF;
+  --on-dark-soft: #9DBEB4;          /* 8.4:1 sobre o azul institucional */
+  --linha: rgba(230, 232, 228, 0.20);
+  --linha-forte: rgba(230, 232, 228, 0.38);
+
+  --f-titulo: "Sora", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-corpo: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-full: 9999px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--primary);
+  color: var(--on-primary);
+  font-family: var(--f-corpo);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48px 20px 40px;
+}
+
+h1, h2 { font-family: var(--f-titulo); font-weight: 600; margin: 0; }
+p { margin: 0; }
+ul { margin: 0; padding: 0; list-style: none; }
+img, svg { display: block; max-width: 100%; }
+
+a:focus-visible {
+  outline: 2px solid var(--secondary-soft);
+  outline-offset: 3px;
+  border-radius: var(--r-md);
+}
+
+.folha { width: 100%; max-width: 420px; display: flex; flex-direction: column; align-items: center; }
+
+/* ---------- Identidade ---------- */
+/* Alvo de toque de 44px: a palavra-marca tem 24px de altura, então o link
+   recebe preenchimento próprio em vez de encolher até o tamanho da imagem. */
+.marca {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 44px; padding: 10px 16px; margin-bottom: 32px;
+}
+.marca img { width: 132px; height: auto; }
+
+.retrato {
+  width: 104px; height: 104px; border-radius: var(--r-full);
+  object-fit: cover; border: 1px solid var(--linha-forte); margin-bottom: 20px;
+}
+
+h1 { font-size: 24px; line-height: 1.25; letter-spacing: -0.01em; text-align: center; }
+
+.papel {
+  margin-top: 8px; text-align: center;
+  font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--on-dark-soft);
+}
+
+/* ---------- Links ---------- */
+.canais { width: 100%; margin-top: 40px; display: flex; flex-direction: column; gap: 12px; }
+
+.canal {
+  display: flex; align-items: center; gap: 16px;
+  min-height: 64px; padding: 14px 18px;
+  border: 1px solid var(--linha-forte); border-radius: var(--r-lg);
+  text-decoration: none; color: var(--on-primary);
+  background: rgba(255, 255, 255, 0.03);
+  transition: background-color .18s ease, border-color .18s ease;
+}
+.canal:hover { background: rgba(126, 163, 152, 0.14); border-color: var(--secondary-soft); }
+
+.canal .icone { flex: none; width: 22px; height: 22px; color: var(--secondary-soft); }
+.canal .texto { flex: 1; min-width: 0; }
+.canal .rotulo { font-weight: 600; font-size: 16px; line-height: 1.3; }
+.canal .apoio {
+  display: block; margin-top: 2px;
+  font-size: 13px; line-height: 1.4; color: var(--on-dark-soft);
+  overflow-wrap: anywhere;
+}
+.canal .seta { flex: none; width: 18px; height: 18px; color: var(--on-dark-soft); }
+
+/* ---------- Rodapé ---------- */
+.rodape {
+  margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--linha);
+  width: 100%; text-align: center;
+}
+.rodape p { font-size: 12px; line-height: 1.5; color: var(--on-dark-soft); }
+.rodape p + p { margin-top: 10px; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.001ms !important; }
+}
+</style>
+</head>
+<body>
+
+<main class="folha">
+
+  <a class="marca" href="https://glauxconecta.com.br/" aria-label="GLAUX — página inicial">
+    <img src="assets/GLAUX_Wordmark_Negativa_Branca.svg" alt="GLAUX" width="132" height="24" />
+  </a>
+
+  <img class="retrato" src="assets/coordenacao-eduardo-arcos.jpg" alt="Retrato de Eduardo Arcos" width="104" height="104" />
+
+  <h1>Eduardo Arcos</h1>
+  <p class="papel">Coordenação acadêmica · GLAUX</p>
+
+  <nav class="canais" aria-label="Canais verificados">
+    <ul>
+      <li>
+        <a class="canal" href="https://www.instagram.com/profeduardoarcos/">
+          <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="5" />
+            <circle cx="12" cy="12" r="4" />
+            <circle cx="17.2" cy="6.8" r="1.2" fill="currentColor" stroke="none" />
+          </svg>
+          <span class="texto">
+            <span class="rotulo">Instagram</span>
+            <span class="apoio">@profeduardoarcos</span>
+          </span>
+          <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      </li>
+
+      <li>
+        <a class="canal" href="https://glauxconecta.com.br/">
+          <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" />
+            <path d="M3 9h18M9 9v12" />
+          </svg>
+          <span class="texto">
+            <span class="rotulo">Conhecer a GLAUX</span>
+            <span class="apoio">Educação aplicada em tecnologia, investigação e evidência</span>
+          </span>
+          <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      </li>
+
+      <li>
+        <a class="canal" href="https://diagnostico.glauxconecta.com.br/">
+          <svg class="icone" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true">
+            <path d="M4 20h16" />
+            <path d="M4 20V12M10 20V7M16 20v-5" />
+            <circle cx="16" cy="11" r="2" fill="currentColor" stroke="none" />
+          </svg>
+          <span class="texto">
+            <span class="rotulo">Diagnóstico de uso de IA</span>
+            <span class="apoio">Mapeamento do uso de inteligência artificial no escritório</span>
+          </span>
+          <svg class="seta" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+            <path d="M9 6l6 6-6 6" />
+          </svg>
+        </a>
+      </li>
+    </ul>
+  </nav>
+
+  <footer class="rodape">
+    <p>
+      A GLAUX é uma marca privada e independente. Seus conteúdos e formações não
+      representam posição oficial de órgãos públicos ou instituições às quais seus
+      professores estejam vinculados.
+    </p>
+    <p>© <span id="ano">2026</span> GLAUX</p>
+  </footer>
+
+</main>
+
+<script>
+  document.getElementById("ano").textContent = String(new Date().getFullYear());
+</script>
+</body>
+</html>
