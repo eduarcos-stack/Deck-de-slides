@@ -1,0 +1,1422 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>GLAUX | Educação aplicada em tecnologia, investigação e evidência</title>
+<meta name="description" content="A GLAUX desenvolve formações e capacitações em inteligência artificial, investigação, OSINT, prova jurídica e evidência digital, com método, aplicação prática e responsabilidade." />
+<meta name="robots" content="index,follow" />
+<link rel="canonical" href="https://glauxconecta.com.br/" />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="GLAUX | Educação aplicada em tecnologia, investigação e evidência" />
+<meta property="og:description" content="Formações e capacitações em inteligência artificial, investigação, OSINT, prova jurídica e evidência digital, com método, aplicação prática e responsabilidade." />
+<meta property="og:locale" content="pt_BR" />
+<meta property="og:site_name" content="GLAUX" />
+<!-- og:url e og:image exigem URL absoluta: os robôs de preview (Facebook,
+     WhatsApp) não resolvem caminho relativo. -->
+<meta property="og:url" content="https://glauxconecta.com.br/" />
+<meta property="og:image" content="https://glauxconecta.com.br/assets/og-image.png" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
+<meta property="og:image:alt" content="GLAUX — educação aplicada em tecnologia, investigação e evidência" />
+<meta name="twitter:card" content="summary_large_image" />
+
+<link rel="icon" href="assets/favicon.ico" sizes="any" />
+<link rel="icon" href="assets/favicon.svg" type="image/svg+xml" />
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png" />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@600&family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+
+<style>
+/* =========================================================================
+   GLAUX Institutional — tokens conforme DESIGN2.md (version: alpha)
+   Desvio documentado: on-surface-muted (#73787C) rende 4.46:1 sobre branco,
+   abaixo do AA exigido pelo próprio documento. Texto corrido usa on-surface;
+   textos auxiliares usam --muted-aa (#5F6469, 5.98:1). Ver README.
+   ========================================================================= */
+:root {
+  /* colors */
+  --primary: #0B1D33;
+  --primary-container: #15403D;
+  --secondary: #2D6B63;
+  --secondary-soft: #7EA398;
+  --neutral: #E6E8E4;
+  --surface: #FFFFFF;
+  --surface-alt: #F2F3F2;
+  --on-primary: #FFFFFF;
+  --on-secondary: #FFFFFF;
+  --on-surface: #111417;
+  --on-surface-muted: #73787C;   /* token: apenas metadados de baixa densidade */
+  --muted-aa: #5F6469;           /* derivado AA para texto auxiliar */
+  --border: #D0D0D0;
+  --border-strong: #73787C;
+  --focus: #2D6B63;
+  --success: #2D6B63;
+  --error: #B42318;
+  --error-container: #FDECEA;
+
+  /* sobre fundos escuros (todos ≥ 4.5:1) */
+  --on-dark: #FFFFFF;
+  --on-dark-soft: #9DBEB4;       /* 5.7:1 no petróleo, 8.4:1 no azul */
+  --linha-escura: rgba(230, 232, 228, 0.20);
+
+  /* typography */
+  --f-titulo: "Sora", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --f-corpo: "Inter", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* rounded */
+  --r-sm: 4px;
+  --r-md: 8px;
+  --r-lg: 12px;
+  --r-xl: 16px;
+  --r-full: 9999px;
+
+  /* spacing — base 8px */
+  --s-2xs: 4px; --s-xs: 8px; --s-sm: 12px; --s-md: 16px;
+  --s-lg: 24px; --s-xl: 32px; --s-2xl: 48px; --s-3xl: 64px; --s-4xl: 96px;
+
+  --max: 1200px;
+  --gutter: 20px;   /* mobile */
+  --stack: var(--s-4xl);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { scroll-behavior: smooth; scroll-padding-top: 88px; -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background: var(--surface);
+  color: var(--on-surface);
+  font-family: var(--f-corpo);
+  font-size: 16px; line-height: 1.6; letter-spacing: 0;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3 { font-family: var(--f-titulo); font-weight: 600; margin: 0; }
+p { margin: 0; }
+ul, ol, dl, dd { margin: 0; padding: 0; }
+li { list-style: none; }
+img, svg { max-width: 100%; display: block; }
+a { color: inherit; }
+
+/* Foco visível em Verde de Destaque */
+:where(a, button, input, select, textarea, summary, [tabindex]):focus-visible {
+  outline: 2px solid var(--focus); outline-offset: 3px; border-radius: var(--r-sm);
+}
+.secao-escura :where(a, button, input, select, textarea, summary):focus-visible,
+.secao-petroleo :where(a, button, input, select, textarea, summary):focus-visible { outline-color: var(--secondary-soft); }
+
+/* ---------- Layout ---------- */
+.wrap { width: 100%; max-width: var(--max); margin-inline: auto; padding-inline: var(--gutter); }
+.secao { padding-block: var(--stack); }
+
+/* Alternância: branco, off-white, Azul Institucional, Verde-petróleo */
+.secao-clara    { background: var(--surface); color: var(--on-surface); }
+.secao-offwhite { background: var(--neutral); color: var(--on-surface); }
+.secao-escura   { background: var(--primary); color: var(--on-dark); }
+.secao-petroleo { background: var(--primary-container); color: var(--on-dark); }
+.secao-escura h1, .secao-escura h2, .secao-escura h3,
+.secao-petroleo h1, .secao-petroleo h2, .secao-petroleo h3 { color: var(--on-primary); }
+
+/* ---------- Escala tipográfica ---------- */
+/* label-md */
+.eyebrow {
+  font-family: var(--f-corpo); font-size: 12px; font-weight: 600;
+  line-height: 1.2; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--secondary); display: flex; align-items: center; gap: 10px; margin-bottom: var(--s-lg);
+}
+.eyebrow::before { content: ""; width: 18px; height: 2px; background: currentColor; flex: none; }
+.secao-escura .eyebrow, .secao-petroleo .eyebrow { color: var(--on-dark-soft); }
+
+/* headline-md (36) → headline-sm (28) em telas menores */
+.h-secao { font-size: clamp(28px, 4vw, 36px); line-height: 1.15; letter-spacing: -0.015em; max-width: 20ch; }
+/* title-md */
+.h-bloco { font-size: 20px; line-height: 1.3; letter-spacing: 0; }
+/* body-lg */
+.lead { font-size: 18px; line-height: 1.6; color: var(--on-surface); max-width: 68ch; }
+.secao-escura .lead, .secao-petroleo .lead { color: var(--on-dark-soft); }
+/* body-md */
+.texto { font-size: 16px; color: var(--on-surface); max-width: 68ch; }
+.secao-escura .texto, .secao-petroleo .texto { color: var(--on-dark-soft); }
+/* body-sm / caption */
+.micro { font-size: 14px; line-height: 1.5; color: var(--muted-aa); }
+.secao-escura .micro, .secao-petroleo .micro { color: var(--on-dark-soft); }
+
+/* ---------- Botões (altura mínima 48px, rounded md) ---------- */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  min-height: 48px; padding: 12px var(--s-lg);
+  font-family: var(--f-corpo); font-size: 14px; font-weight: 600; line-height: 1.2; letter-spacing: 0.02em;
+  text-decoration: none; cursor: pointer; border-radius: var(--r-md);
+  border: 1px solid transparent;
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease;
+}
+.btn-primario { background: var(--secondary); color: var(--on-secondary); border-color: var(--secondary); }
+.btn-primario:hover { background: var(--primary-container); border-color: var(--primary-container); color: var(--on-primary); }
+
+.btn-secundario { background: var(--surface); color: var(--primary); border-color: var(--secondary); }
+.btn-secundario:hover { background: var(--neutral); border-color: var(--primary-container); }
+/* Em fundos escuros o secundário permanece subordinado: contorno, não sólido */
+.secao-escura .btn-secundario, .secao-petroleo .btn-secundario {
+  background: transparent; color: var(--on-primary); border-color: var(--secondary-soft);
+}
+.secao-escura .btn-secundario:hover, .secao-petroleo .btn-secundario:hover { background: rgba(126, 163, 152, 0.18); }
+
+.btn[disabled], .btn[aria-disabled="true"] { opacity: .55; cursor: not-allowed; }
+.btn-bloco { width: 100%; }
+
+/* ---------- Cabeçalho (72px) ---------- */
+.topo { position: sticky; top: 0; z-index: 60; background: var(--surface); border-bottom: 1px solid var(--border); }
+.topo-inner { display: flex; align-items: center; justify-content: space-between; gap: var(--s-md); min-height: 72px; padding-block: var(--s-md); }
+
+/* Palavra-marca vetorial oficial.
+   DESIGN2.md exige mínimo de 120px de largura no digital. Usamos 132px, com
+   altura automática para preservar a proporção do arquivo oficial (ver README:
+   o SVG tem razão 4.36:1, não os 5.5:1 implicados por "132×24"). */
+.marca {
+  display: inline-flex; align-items: center; min-height: 44px; text-decoration: none;
+}
+.marca img { display: block; width: 132px; height: auto; }
+
+.nav-desktop { display: none; align-items: center; gap: var(--s-xl); }
+.nav-desktop a {
+  font-size: 14px; font-weight: 600; line-height: 1.2; letter-spacing: 0.02em;
+  text-decoration: none; color: var(--primary);
+  display: inline-flex; align-items: center; min-height: 44px; border-bottom: 2px solid transparent;
+}
+.nav-desktop a:hover { color: var(--secondary); border-bottom-color: var(--secondary); }
+.topo-cta { display: none; }
+
+.menu-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 48px; height: 48px; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); cursor: pointer; color: var(--primary);
+}
+.menu-btn:hover { border-color: var(--secondary); }
+.menu-btn svg { width: 20px; height: 20px; }
+.menu-btn .icone-fechar { display: none; }
+.menu-btn[aria-expanded="true"] .icone-abrir { display: none; }
+.menu-btn[aria-expanded="true"] .icone-fechar { display: block; }
+
+/* Menu flutuante: sombra mínima e difusa, permitida para este caso */
+.menu-mobile { display: none; background: var(--surface); border-bottom: 1px solid var(--border); box-shadow: 0 8px 24px rgba(17, 20, 23, 0.06); }
+.menu-mobile[data-aberto="true"] { display: block; }
+.menu-mobile ul { padding-block: var(--s-sm) var(--s-lg); }
+.menu-mobile ul a {
+  display: flex; align-items: center; min-height: 48px;
+  font-size: 16px; text-decoration: none; color: var(--primary);
+  border-bottom: 1px solid var(--border);
+}
+.menu-mobile .btn { margin-top: var(--s-lg); }
+
+/* ---------- Hero ---------- */
+.hero { background: var(--primary); color: var(--on-dark); padding-block: var(--s-3xl) var(--s-4xl); }
+/* headline-display reservado a telas amplas */
+.hero h1 { font-size: clamp(36px, 5.6vw, 64px); line-height: 1.05; letter-spacing: -0.03em; max-width: 16ch; color: var(--on-primary); }
+.hero .apoio { margin-top: var(--s-lg); font-size: 18px; line-height: 1.6; color: var(--on-primary); max-width: 62ch; }
+.hero-acoes { display: flex; flex-wrap: wrap; gap: var(--s-sm); margin-top: var(--s-xl); }
+.hero-acoes .btn { flex: 1 1 240px; }
+.hero .microtexto {
+  margin-top: var(--s-lg); padding-left: var(--s-md); border-left: 2px solid var(--secondary-soft);
+  font-size: 14px; color: var(--on-dark-soft); max-width: 52ch;
+}
+.hero-visual { margin-top: var(--s-2xl); }
+.hero-visual figure { margin: 0; border: 1px solid var(--linha-escura); border-radius: var(--r-lg); padding: var(--s-lg); }
+.hero-visual canvas { width: 100%; height: 260px; display: block; }
+.hero-visual figcaption {
+  margin-top: var(--s-sm); font-size: 12px; font-weight: 600; line-height: 1.2;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--on-dark-soft);
+}
+
+/* ---------- Cards (rounded lg, padding 24, borda 1px) ---------- */
+.cards { display: grid; gap: var(--s-lg); margin-top: var(--s-2xl); }
+.card { border: 1px solid var(--border); background: var(--surface); padding: var(--s-lg); border-radius: var(--r-lg); }
+.card h3 { margin-bottom: var(--s-sm); }
+.card p { color: var(--on-surface); font-size: 16px; }
+.card .marca-geo { margin-bottom: var(--s-md); }
+
+/* Gramática visual: campos, pontos, linhas, controles */
+.marca-geo { width: 40px; height: 40px; color: var(--secondary); }
+.secao-escura .marca-geo, .secao-petroleo .marca-geo { color: var(--secondary-soft); }
+
+/* ---------- Frentes em desenvolvimento ---------- */
+.frentes { display: grid; gap: var(--s-lg); margin-top: var(--s-2xl); }
+.frente { border: 1px solid var(--border); padding: var(--s-lg); border-radius: var(--r-lg); background: var(--surface); }
+/* chip de status */
+.selo {
+  display: inline-flex; align-items: center; gap: var(--s-xs); height: 32px;
+  font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--primary); background: var(--neutral); border-radius: var(--r-full);
+  padding-inline: var(--s-md); margin-bottom: var(--s-md);
+}
+.selo::before { content: ""; width: 6px; height: 6px; border-radius: var(--r-full); background: var(--secondary); flex: none; }
+
+/* ---------- Para quem ---------- */
+.perfis { display: grid; gap: var(--s-lg); margin-top: var(--s-2xl); }
+.perfil { border: 1px solid var(--linha-escura); padding: var(--s-lg); border-radius: var(--r-lg); background: rgba(255,255,255,0.03); }
+.perfil > p { color: var(--on-dark-soft); font-size: 16px; margin-top: var(--s-sm); }
+.perfil dl { margin-top: var(--s-lg); border-top: 1px solid var(--linha-escura); padding-top: var(--s-md); display: grid; gap: var(--s-md); }
+.perfil dt { font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: 0.08em; text-transform: uppercase; color: var(--on-dark-soft); }
+.perfil dd { font-size: 16px; color: var(--on-primary); margin-top: var(--s-2xs); }
+
+/* ---------- Método (process-step) ---------- */
+.metodo { margin-top: var(--s-2xl); display: grid; gap: var(--s-lg); }
+.etapa {
+  position: relative; background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-lg); padding: var(--s-lg) var(--s-lg) var(--s-lg) var(--s-2xl);
+}
+/* ponto de controle: destacado quando validado */
+.etapa::before {
+  content: ""; position: absolute; left: var(--s-lg); top: var(--s-lg);
+  width: 12px; height: 12px; border: 2px solid var(--secondary); background: var(--surface); transform: rotate(45deg);
+}
+.etapa[data-ativa="true"]::before { background: var(--secondary); }
+.etapa .num { font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: 0.08em; color: var(--secondary); }
+.etapa h3 { margin-block: var(--s-2xs) var(--s-xs); font-size: 20px; line-height: 1.3; color: var(--primary); }
+.etapa p { color: var(--on-surface); font-size: 16px; }
+/* linha contínua = relação documentada */
+.metodo-linha { display: none; }
+
+/* ---------- Chips de temas ---------- */
+.chips { display: flex; flex-wrap: wrap; gap: var(--s-sm); margin-top: var(--s-xl); }
+.chip {
+  display: inline-flex; align-items: center; gap: var(--s-xs); height: 32px;
+  border-radius: var(--r-full); padding-inline: var(--s-md);
+  font-size: 12px; font-weight: 600; line-height: 1.2; letter-spacing: 0.08em; text-transform: uppercase;
+  color: var(--primary); background: var(--neutral);
+}
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: var(--r-full); background: var(--secondary); flex: none; }
+
+/* ---------- Sobre / Coordenação ---------- */
+.sobre-complemento {
+  margin-top: var(--s-lg); padding: var(--s-lg); border: 1px solid var(--linha-escura);
+  border-radius: var(--r-lg); color: var(--on-primary); font-size: 16px; max-width: 68ch;
+}
+/* minmax(0,…): sem isso a coluna adota o min-content da imagem (920px do
+   atributo width) e estoura o grid. Ver .coord-foto abaixo. */
+.coord { display: grid; grid-template-columns: minmax(0, 1fr); gap: var(--s-lg); margin-top: var(--s-xl); }
+/* Retrato da coordenação — 4:5 definido explicitamente (o slot antigo não tinha
+   proporção: colapsava no min-height e só parecia horizontal). */
+.coord-foto {
+  width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: center top;
+  border-radius: var(--r-lg); background: var(--surface-alt);
+}
+.nota-producao {
+  margin-top: var(--s-md); padding: var(--s-sm) var(--s-md); border-left: 3px solid var(--secondary);
+  background: var(--surface-alt); border-radius: var(--r-sm); font-size: 14px; color: var(--muted-aa);
+}
+
+/* ---------- Formulário ---------- */
+.form-grid { display: grid; gap: var(--s-xl); }
+.form-caixa { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: var(--s-lg); }
+.campos { display: grid; gap: var(--s-lg); }
+.campo { display: flex; flex-direction: column; gap: var(--s-xs); }
+.campo label { font-size: 14px; font-weight: 600; line-height: 1.2; letter-spacing: 0.02em; color: var(--on-surface); }
+.campo .obrigatorio { color: var(--secondary); }
+.campo .ajuda { font-size: 14px; font-weight: 400; color: var(--muted-aa); letter-spacing: 0; }
+.campo input, .campo select, .campo textarea {
+  font-family: var(--f-corpo); font-size: 16px; line-height: 1.6; color: var(--on-surface);
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: var(--r-md); padding: 12px var(--s-md); min-height: 48px; width: 100%;
+  transition: border-color .16s ease;
+}
+.campo textarea { min-height: 120px; resize: vertical; }
+.campo input:hover, .campo select:hover, .campo textarea:hover { border-color: var(--border-strong); }
+.campo input:focus, .campo select:focus, .campo textarea:focus { border-color: var(--focus); }
+.campo[data-erro="true"] input,
+.campo[data-erro="true"] select,
+.campo[data-erro="true"] textarea { border-color: var(--error); border-width: 2px; }
+
+/* estado não comunicado apenas por cor: ícone + texto */
+.erro-campo { font-size: 14px; color: var(--error); display: none; align-items: center; gap: 6px; }
+.erro-campo::before {
+  content: "!"; display: inline-flex; align-items: center; justify-content: center;
+  width: 16px; height: 16px; border: 1px solid currentColor; border-radius: var(--r-full);
+  font-size: 11px; font-weight: 600; flex: none;
+}
+.campo[data-erro="true"] .erro-campo { display: flex; }
+
+.consent { display: flex; gap: var(--s-sm); align-items: flex-start; }
+.consent input { width: 22px; height: 22px; margin: 2px 0 0; flex: none; accent-color: var(--secondary); }
+.consent label { font-size: 16px; font-weight: 400; letter-spacing: 0; color: var(--on-surface); }
+
+.aviso-seguranca {
+  margin-top: var(--s-lg); padding: var(--s-md); border: 1px solid var(--border);
+  background: var(--surface-alt); font-size: 14px; color: var(--on-surface); border-radius: var(--r-md);
+}
+
+.form-status { margin-top: var(--s-md); padding: var(--s-sm) var(--s-md); border-radius: var(--r-md); font-size: 14px; display: none; gap: var(--s-xs); align-items: flex-start; }
+.form-status[data-tipo="erro"] { display: flex; background: var(--error-container); color: var(--error); border: 1px solid var(--error); }
+.form-status[data-tipo="sucesso"] { display: flex; background: var(--surface-alt); color: var(--primary-container); border: 1px solid var(--success); }
+.form-status .rotulo { font-weight: 600; }
+
+/* ---------- Modal de confirmação de envio ---------- */
+#modal-sucesso {
+  border: none; padding: 0; background: transparent;
+  max-width: 480px; width: calc(100% - 2 * var(--s-lg));
+  color: var(--on-surface);
+}
+#modal-sucesso::backdrop { background: rgba(11, 29, 51, 0.62); }
+
+.modal-corpo {
+  background: var(--surface); border-radius: var(--r-xl);
+  padding: var(--s-2xl) var(--s-xl) var(--s-xl);
+  text-align: center; box-shadow: 0 24px 60px rgba(11, 29, 51, 0.28);
+}
+
+.modal-icone {
+  width: 64px; height: 64px; margin: 0 auto var(--s-lg);
+  border-radius: 50%; background: var(--primary-container); color: var(--on-primary);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-icone svg { width: 30px; height: 30px; }
+
+#modal-titulo { font-size: 24px; line-height: 1.2; letter-spacing: -0.01em; color: var(--primary); }
+.modal-texto { margin-top: var(--s-sm); font-size: 16px; color: var(--on-surface); }
+.modal-nota { margin-top: var(--s-md); font-size: 13px; line-height: 1.5; color: var(--muted-aa); }
+.modal-nota a { color: var(--secondary); font-weight: 600; }
+#modal-fechar { margin-top: var(--s-lg); }
+
+/* Entrada curta: confirma sem atrasar. Anulada para quem pede menos movimento. */
+#modal-sucesso[open] .modal-corpo { animation: modal-entra 180ms ease-out; }
+@keyframes modal-entra {
+  from { opacity: 0; transform: translateY(8px) scale(0.98); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #modal-sucesso[open] .modal-corpo { animation: none; }
+}
+
+/* Armadilha anti-robô. Fora da tela em vez de display:none — parte dos robôs
+   ignora campo oculto, mas preenche o que existe no HTML. Invisível para quem
+   enxerga, e retirado do foco e do leitor de tela pelo tabindex/aria no HTML. */
+.armadilha {
+  position: absolute; left: -9999px; width: 1px; height: 1px;
+  overflow: hidden; opacity: 0;
+}
+
+/* ---------- FAQ (accordion) ---------- */
+.faq { display: grid; gap: var(--s-sm); margin-top: var(--s-xl); max-width: 820px; }
+.faq details { border: 1px solid var(--border); border-radius: var(--r-md); background: var(--surface); }
+.faq summary {
+  display: flex; align-items: center; justify-content: space-between; gap: var(--s-md);
+  padding: var(--s-md); min-height: 48px; cursor: pointer;
+  font-family: var(--f-titulo); font-size: 18px; font-weight: 600; line-height: 1.3; list-style: none;
+}
+.faq summary::-webkit-details-marker { display: none; }
+.faq summary .sinal { flex: none; width: 20px; height: 20px; color: var(--secondary); transition: transform .18s ease; }
+.faq details[open] summary { border-bottom: 1px solid var(--border); }
+.faq details[open] summary .sinal { transform: rotate(45deg); }
+.faq .resposta { padding: var(--s-md); color: var(--on-surface); font-size: 16px; }
+
+/* ---------- CTA final ---------- */
+.cta-final h2 { font-size: clamp(28px, 4vw, 36px); line-height: 1.15; letter-spacing: -0.015em; max-width: 22ch; }
+.cta-final .btn { margin-top: var(--s-xl); }
+
+/* ---------- Rodapé ---------- */
+.rodape { background: var(--primary); color: var(--on-dark); padding-block: var(--s-3xl) var(--s-xl); }
+.rodape-grid { display: grid; gap: var(--s-xl); }
+.rodape h2 {
+  font-family: var(--f-corpo); font-size: 12px; font-weight: 600; line-height: 1.2;
+  letter-spacing: 0.08em; text-transform: uppercase; color: var(--on-dark-soft); margin-bottom: var(--s-sm);
+}
+.rodape a { color: var(--on-primary); text-decoration: none; display: inline-flex; align-items: center; min-height: 44px; font-size: 16px; }
+.rodape a:hover { color: var(--secondary-soft); text-decoration: underline; }
+.rodape .independencia { margin-top: var(--s-xl); padding-top: var(--s-lg); border-top: 1px solid var(--linha-escura); font-size: 14px; color: var(--on-dark-soft); max-width: 70ch; }
+.rodape .legal { margin-top: var(--s-md); font-size: 12px; line-height: 1.4; color: var(--on-dark-soft); }
+.placeholder { color: var(--on-dark-soft); font-size: 14px; }
+
+/* ---------- Pular para conteúdo ---------- */
+.skip { position: absolute; left: -9999px; top: 0; z-index: 100; background: var(--secondary); color: var(--on-secondary); padding: 12px var(--s-md); border-radius: var(--r-md); }
+.skip:focus { left: 12px; top: 12px; }
+
+/* ---------- Tablet: 6 colunas, gutter 24 ---------- */
+@media (min-width: 640px) {
+  :root { --gutter: 24px; }
+  .cards { grid-template-columns: repeat(2, 1fr); }
+  .frentes { grid-template-columns: repeat(2, 1fr); }
+  .campos { grid-template-columns: repeat(2, 1fr); }
+  .campo-largo { grid-column: 1 / -1; }
+  .hero-acoes .btn { flex: 0 1 auto; }
+  .rodape-grid { grid-template-columns: repeat(2, 1fr); }
+  .form-caixa { padding: var(--s-xl); }
+}
+
+/* ---------- Desktop: 12 colunas, 1200px, gutter 32 ---------- */
+@media (min-width: 900px) {
+  :root { --gutter: 32px; }
+  .nav-desktop { display: flex; }
+  .topo-cta { display: inline-flex; }
+  .menu-btn { display: none; }
+  .menu-mobile { display: none !important; }
+
+  .hero { padding-block: var(--s-4xl); }
+  .hero-inner { display: grid; grid-template-columns: 7fr 5fr; gap: var(--s-2xl); align-items: center; }
+  .hero-visual { margin-top: 0; }
+  .hero-visual canvas { height: 320px; }
+
+  .cards { grid-template-columns: repeat(4, 1fr); }
+  .perfis { grid-template-columns: repeat(3, 1fr); }
+  .coord { grid-template-columns: minmax(0, 5fr) minmax(0, 7fr); align-items: start; }
+  .form-grid { grid-template-columns: 5fr 7fr; align-items: start; }
+  .rodape-grid { grid-template-columns: 2fr 1fr 1fr 1fr; }
+
+  /* Método horizontal, ligado por linha contínua (relação documentada) */
+  .metodo { grid-template-columns: repeat(4, 1fr); position: relative; }
+  .metodo-linha { display: block; position: absolute; left: 0; right: 0; top: calc(var(--s-lg) + 6px); height: 1px; background: var(--border); z-index: 0; }
+  .etapa { z-index: 1; }
+}
+
+@media (min-width: 1100px) {
+  .cta-final { display: grid; grid-template-columns: 7fr 5fr; gap: var(--s-2xl); align-items: end; }
+  .cta-final .btn { margin-top: 0; justify-self: start; }
+}
+
+/* ---------- Movimento reduzido ---------- */
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important; animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+</style>
+</head>
+<body>
+<a class="skip" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- =================== 1. CABEÇALHO =================== -->
+<header class="topo">
+  <div class="wrap topo-inner">
+    <a class="marca" href="#topo" aria-label="GLAUX — página inicial">
+      <img src="assets/glaux-wordmark.svg" alt="GLAUX" width="1801" height="413" />
+    </a>
+
+    <nav class="nav-desktop" aria-label="Navegação principal">
+      <a href="#sobre">Sobre</a>
+      <a href="#para-quem">Para quem</a>
+      <a href="#temas">Temas</a>
+      <a href="#como-pensamos">Como pensamos</a>
+      <a href="#interesse">Interesse</a>
+    </nav>
+
+    <a class="btn btn-primario topo-cta" href="#interesse">Registrar meu interesse</a>
+
+    <button class="menu-btn" id="menu-btn" type="button"
+            aria-expanded="false" aria-controls="menu-mobile" aria-label="Abrir menu de navegação">
+      <svg class="icone-abrir" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      <svg class="icone-fechar" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M5 5l14 14M19 5L5 19"/></svg>
+    </button>
+  </div>
+
+  <nav class="menu-mobile" id="menu-mobile" data-aberto="false" aria-label="Navegação principal (mobile)">
+    <div class="wrap">
+      <ul>
+        <li><a href="#sobre">Sobre</a></li>
+        <li><a href="#para-quem">Para quem</a></li>
+        <li><a href="#temas">Temas</a></li>
+        <li><a href="#como-pensamos">Como pensamos</a></li>
+        <li><a href="#interesse">Interesse</a></li>
+      </ul>
+      <a class="btn btn-primario btn-bloco" href="#interesse">Registrar meu interesse</a>
+    </div>
+  </nav>
+</header>
+
+<main id="conteudo">
+
+<!-- =================== 2. HERO =================== -->
+<section class="hero secao-escura" id="topo">
+  <div class="wrap hero-inner">
+    <div>
+      <h1>Conhecimento que estrutura decisões.</h1>
+      <p class="apoio">
+        A GLAUX é uma instituição de educação aplicada em tecnologia, investigação e evidência.
+        Desenvolve formações e capacitações para profissionais, equipes e organizações que precisam
+        integrar inteligência artificial, OSINT e produção de evidência com método, responsabilidade
+        e aplicação prática.
+      </p>
+      <div class="hero-acoes">
+        <a class="btn btn-primario" href="#interesse">Registrar meu interesse</a>
+        <a class="btn btn-secundario" href="#sobre">Conhecer a GLAUX</a>
+      </div>
+      <p class="microtexto">
+        Formação especializada, aplicação contextualizada e responsabilidade humana.
+      </p>
+    </div>
+
+    <div class="hero-visual">
+      <figure>
+        <canvas id="campo-organizacao" height="320" width="480"
+                role="img"
+                aria-label="Representação abstrata de pontos dispersos que se organizam em uma estrutura regular."></canvas>
+        <figcaption>Origem → Estrutura → Verificação → Aplicação</figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 3. O PROBLEMA =================== -->
+<section class="secao secao-offwhite" id="problema">
+  <div class="wrap">
+    <p class="eyebrow">O problema</p>
+    <h2 class="h-secao">Tecnologia sem método amplia risco.</h2>
+    <p class="lead" style="margin-top:24px">
+      Ferramentas mais poderosas não corrigem processos desorganizados. Sem critérios de uso,
+      revisão humana, privacidade e registro, a tecnologia pode acelerar inconsistências e ampliar
+      a responsabilidade de quem decide.
+    </p>
+
+    <div class="cards">
+      <article class="card">
+        <svg class="marca-geo" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="2" y="2" width="36" height="36"/>
+          <circle cx="12" cy="14" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="26" cy="9" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="20" cy="28" r="2.5" fill="currentColor" stroke="none"/>
+          <circle cx="31" cy="24" r="2.5" fill="currentColor" stroke="none"/>
+        </svg>
+        <h3 class="h-bloco">IA sem padrão de revisão</h3>
+        <p>Resultados incorporados ao trabalho sem critério definido de conferência, registro e responsabilidade.</p>
+      </article>
+
+      <article class="card">
+        <svg class="marca-geo" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <circle cx="9" cy="10" r="3.5"/><circle cx="31" cy="10" r="3.5"/>
+          <circle cx="9" cy="30" r="3.5"/><circle cx="31" cy="30" r="3.5"/>
+          <path d="M12.5 10h15" stroke-dasharray="3 3"/><path d="M9 13.5v13" stroke-dasharray="3 3"/>
+        </svg>
+        <h3 class="h-bloco">Conhecimento técnico desconectado da prática</h3>
+        <p>Conteúdo aprendido fora do contexto real de trabalho raramente se converte em competência aplicável.</p>
+      </article>
+
+      <article class="card">
+        <svg class="marca-geo" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <path d="M4 30h32"/><path d="M4 30V16M14 30v-8M24 30v-18M34 30v-6"/>
+          <path d="M14 22l10-10" stroke-dasharray="3 3"/>
+        </svg>
+        <h3 class="h-bloco">Ausência de supervisão documentada</h3>
+        <p>Decisões apoiadas em tecnologia sem trilha que permita reconstruir depois quem revisou, quando e com que critério.</p>
+      </article>
+
+      <article class="card">
+        <svg class="marca-geo" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true">
+          <rect x="4" y="4" width="14" height="14"/><rect x="22" y="22" width="14" height="14"/>
+          <path d="M18 11h10a2 2 0 012 2v9" stroke-dasharray="3 3"/>
+        </svg>
+        <h3 class="h-bloco">Insegurança sobre sigilo, privacidade e responsabilidade</h3>
+        <p>Dúvida sobre o que pode ser inserido em uma ferramenta, o que fica registrado e quem responde pelo resultado.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 4. Frentes educacionais em desenvolvimento =================== -->
+<section class="secao secao-clara" id="desenvolver">
+  <div class="wrap">
+    <p class="eyebrow">Frentes educacionais em desenvolvimento</p>
+    <h2 class="h-secao">Capacitação para aplicação responsável.</h2>
+    <p class="lead" style="margin-top:24px">
+      A GLAUX está estruturando iniciativas educacionais voltadas à transformação de conhecimento
+      técnico em competência aplicável.
+    </p>
+
+    <div class="frentes">
+      <article class="frente">
+        <p class="selo">Em desenvolvimento</p>
+        <h3 class="h-bloco">Formações especializadas</h3>
+        <p class="texto" style="margin-top:12px">
+          Cursos e jornadas voltados à aplicação prática de tecnologia em contextos jurídicos e investigativos.
+        </p>
+      </article>
+
+      <article class="frente">
+        <p class="selo">Em desenvolvimento</p>
+        <h3 class="h-bloco">Capacitações para equipes</h3>
+        <p class="texto" style="margin-top:12px">
+          Programas educacionais fechados, adaptados às necessidades de aprendizagem de organizações e escritórios.
+        </p>
+      </article>
+
+      <article class="frente">
+        <p class="selo">Em desenvolvimento</p>
+        <h3 class="h-bloco">Protocolos de aprendizagem</h3>
+        <p class="texto" style="margin-top:12px">
+          Estruturas educacionais para organizar critérios, supervisão, registro e aplicação.
+        </p>
+      </article>
+
+      <article class="frente">
+        <p class="selo">Em desenvolvimento</p>
+        <h3 class="h-bloco">Conteúdos e eventos</h3>
+        <p class="texto" style="margin-top:12px">
+          Aulas, encontros e materiais para circulação de conhecimento técnico qualificado.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 5. PARA QUEM =================== -->
+<section class="secao secao-petroleo" id="para-quem">
+  <div class="wrap">
+    <p class="eyebrow">Para quem</p>
+    <h2 class="h-secao">Para quem precisa integrar tecnologia sem terceirizar a responsabilidade.</h2>
+
+    <div class="perfis">
+      <article class="perfil">
+        <h3 class="h-bloco">Organizações do sistema de justiça criminal</h3>
+        <p>
+          Para equipes que precisam estruturar o uso de inteligência artificial, OSINT e evidência
+          em ambientes de alta responsabilidade.
+        </p>
+        <dl>
+          <div><dt>Necessidade</dt><dd>Critérios comuns de uso, revisão e registro entre equipes que trabalham sobre o mesmo caso.</dd></div>
+          <div><dt>Capacidade a desenvolver</dt><dd>Definir quando uma ferramenta pode ser usada, como conferir seu resultado e como documentar o percurso.</dd></div>
+          <div><dt>Benefício profissional</dt><dd>Trabalho técnico sustentável, explicável e reconstruível diante de questionamento.</dd></div>
+          <div><dt>Responsabilidade que permanece humana</dt><dd>A decisão, a valoração da prova e a supervisão continuam sendo do profissional.</dd></div>
+        </dl>
+      </article>
+
+      <article class="perfil">
+        <h3 class="h-bloco">Escritórios e equipes jurídicas</h3>
+        <p>
+          Para profissionais que buscam integrar tecnologia à produção e análise sem abandonar
+          sigilo, revisão humana e juízo técnico.
+        </p>
+        <dl>
+          <div><dt>Necessidade</dt><dd>Clareza sobre o que pode ser submetido a uma ferramenta sem comprometer sigilo profissional.</dd></div>
+          <div><dt>Capacidade a desenvolver</dt><dd>Incorporar tecnologia ao fluxo de produção e análise mantendo conferência e controle de versões.</dd></div>
+          <div><dt>Benefício profissional</dt><dd>Ganho de tempo em tarefas instrumentais sem transferir o núcleo do trabalho técnico.</dd></div>
+          <div><dt>Responsabilidade que permanece humana</dt><dd>A tese, a estratégia e a revisão final permanecem sob juízo do profissional.</dd></div>
+        </dl>
+      </article>
+
+      <article class="perfil">
+        <h3 class="h-bloco">Profissionais especializados</h3>
+        <p>
+          Para quem atua com investigação, inteligência, prova, análise e produção de conhecimento aplicado.
+        </p>
+        <dl>
+          <div><dt>Necessidade</dt><dd>Método próprio para avaliar fontes, registrar percurso e sustentar conclusões.</dd></div>
+          <div><dt>Capacidade a desenvolver</dt><dd>Passar da coleta dispersa para análise estruturada, verificável e documentada.</dd></div>
+          <div><dt>Benefício profissional</dt><dd>Produção técnica mais consistente e menos dependente de improviso.</dd></div>
+          <div><dt>Responsabilidade que permanece humana</dt><dd>A interpretação, o contexto e os limites da conclusão continuam sendo atribuição do analista.</dd></div>
+        </dl>
+      </article>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 6. COMO A GLAUX PENSA =================== -->
+<section class="secao secao-offwhite" id="como-pensamos">
+  <div class="wrap">
+    <p class="eyebrow">Como a GLAUX pensa</p>
+    <h2 class="h-secao">Da informação dispersa à aplicação responsável.</h2>
+    <p class="lead" style="margin-top:24px">
+      A aprendizagem parte da origem da informação, organiza critérios, confronta resultados e
+      conduz à aplicação responsável. O objetivo não é apenas conhecer ferramentas, mas saber
+      quando, como e por que utilizá-las.
+    </p>
+
+    <ol class="metodo" id="metodo">
+      <span class="metodo-linha" aria-hidden="true"></span>
+      <li class="etapa">
+        <p class="num">01</p>
+        <h3>Origem</h3>
+        <p>Dado bruto, dúvida ou ponto de atenção.</p>
+      </li>
+      <li class="etapa">
+        <p class="num">02</p>
+        <h3>Estrutura</h3>
+        <p>Organização, contexto e critérios.</p>
+      </li>
+      <li class="etapa">
+        <p class="num">03</p>
+        <h3>Verificação</h3>
+        <p>Confronto, revisão, supervisão e evidência.</p>
+      </li>
+      <li class="etapa">
+        <p class="num">04</p>
+        <h3>Aplicação</h3>
+        <p>Decisão informada, responsável e verificável.</p>
+      </li>
+    </ol>
+  </div>
+</section>
+
+<!-- =================== 7. TEMAS DE INTERESSE =================== -->
+<section class="secao secao-clara" id="temas">
+  <div class="wrap">
+    <p class="eyebrow">Temas de interesse</p>
+    <h2 class="h-secao">Temas que orientam as primeiras iniciativas.</h2>
+    <p class="lead" style="margin-top:24px">
+      Territórios de interesse que orientam a estruturação das primeiras formações. Não constituem
+      cursos disponíveis nem oferta em andamento.
+    </p>
+
+    <ul class="chips">
+      <li class="chip">Inteligência artificial aplicada</li>
+      <li class="chip">OSINT</li>
+      <li class="chip">Investigação</li>
+      <li class="chip">Prova e evidência digital</li>
+      <li class="chip">Produção jurídica</li>
+      <li class="chip">Privacidade e LGPD</li>
+      <li class="chip">Supervisão humana</li>
+      <li class="chip">Rastreabilidade</li>
+      <li class="chip">Documentação de processos</li>
+      <li class="chip">Capacitação de equipes</li>
+    </ul>
+  </div>
+</section>
+
+<!-- =================== 8. SOBRE A GLAUX =================== -->
+<section class="secao secao-escura" id="sobre">
+  <div class="wrap">
+    <p class="eyebrow">Sobre a GLAUX</p>
+    <h2 class="h-secao">Uma instituição construída para transformar conhecimento em capacidade.</h2>
+    <p class="lead" style="margin-top:24px">
+      A GLAUX nasce ancorada na experiência de seu fundador, mas foi concebida como uma instituição
+      independente, capaz de reunir professores, pesquisadores e especialistas em torno de formações,
+      protocolos, conteúdos e eventos.
+    </p>
+    <p class="sobre-complemento">
+      A marca pretende desenvolver, progressivamente, uma escola especializada, capacitações para
+      equipes, programas educacionais, protocolos de aprendizagem, rede de especialistas e eventos.
+    </p>
+  </div>
+</section>
+
+<!-- =================== 9. COORDENAÇÃO ACADÊMICA =================== -->
+<section class="secao secao-offwhite" id="coordenacao">
+  <div class="wrap">
+    <p class="eyebrow">Coordenação acadêmica</p>
+    <h2 class="h-secao">Coordenação acadêmica</h2>
+
+    <div class="coord">
+      <img class="coord-foto" src="assets/coordenacao-eduardo-arcos.jpg"
+           width="919" height="1150" loading="lazy"
+           alt="Retrato de Eduardo Arcos, coordenador acadêmico da GLAUX" />
+      <div>
+        <p class="lead">
+          Eduardo Arcos é delegado de polícia, professor e pesquisador, com atuação voltada à
+          investigação, à inteligência, à segurança pública e às relações entre tecnologia,
+          informação e prova. Sua trajetória combina experiência institucional, docência jurídica
+          e pesquisa acadêmica, com especial interesse em governança da informação, evidência
+          digital, inteligência artificial e controle da qualidade do conhecimento produzido em
+          ambientes decisórios.
+        </p>
+        <p class="lead" style="margin-top:var(--s-md)">
+          Ao longo da carreira, construiu uma visão integrada entre prática investigativa,
+          formação profissional e desenvolvimento de métodos aplicados. Na coordenação acadêmica
+          da GLAUX, essa experiência orienta a curadoria de programas, a seleção de especialistas
+          e o compromisso com formações tecnicamente rigorosas, responsáveis e conectadas aos
+          desafios reais de quem atua com investigação, inteligência e produção de evidências.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 10. FORMULÁRIO DE INTERESSE =================== -->
+<section class="secao secao-clara" id="interesse">
+  <div class="wrap">
+    <div class="form-grid">
+      <div>
+        <p class="eyebrow">Registro de interesse</p>
+        <h2 class="h-secao">Acompanhe o lançamento da GLAUX.</h2>
+        <p class="lead" style="margin-top:24px">
+          Estamos estruturando as primeiras formações, capacitações e conteúdos. Cadastre seu
+          interesse para receber novidades e indicar os temas mais relevantes para sua atuação.
+        </p>
+        <p class="aviso-seguranca">
+          Não envie dados sigilosos, pessoais sensíveis ou informações de investigações em andamento.
+        </p>
+      </div>
+
+      <div class="form-caixa">
+        <!-- Destino: Google Apps Script (ver apps-script/Codigo.gs).
+             A URL fica em ENDPOINT_FORMULARIO, no script ao final do arquivo. -->
+        <form id="form-interesse" novalidate>
+          <div class="campos">
+            <div class="campo" id="c-nome">
+              <label for="nome">Nome <span class="obrigatorio" aria-hidden="true">*</span></label>
+              <input type="text" id="nome" name="nome" autocomplete="name" required aria-required="true" aria-describedby="e-nome" />
+              <span class="erro-campo" id="e-nome">Informe seu nome.</span>
+            </div>
+
+            <div class="campo" id="c-email">
+              <label for="email">E-mail <span class="obrigatorio" aria-hidden="true">*</span></label>
+              <input type="email" id="email" name="email" autocomplete="email" required aria-required="true" aria-describedby="e-email" />
+              <span class="erro-campo" id="e-email">Informe um e-mail válido.</span>
+            </div>
+
+            <div class="campo" id="c-org">
+              <label for="organizacao">Organização</label>
+              <input type="text" id="organizacao" name="organizacao" autocomplete="organization" />
+            </div>
+
+            <div class="campo" id="c-area">
+              <label for="area">Área de atuação</label>
+              <input type="text" id="area" name="area" />
+            </div>
+
+            <div class="campo" id="c-tema">
+              <label for="tema">Principal tema de interesse <span class="obrigatorio" aria-hidden="true">*</span></label>
+              <select id="tema" name="tema" required aria-required="true" aria-describedby="e-tema">
+                <option value="">Selecione</option>
+                <option value="inteligencia-artificial">Inteligência artificial</option>
+                <option value="osint">OSINT</option>
+                <option value="prova-evidencia-digital">Prova e evidência digital</option>
+                <option value="investigacao">Investigação</option>
+                <option value="producao-juridica">Produção jurídica</option>
+                <option value="privacidade-lgpd">Privacidade e LGPD</option>
+                <option value="capacitacao-equipes">Capacitação de equipes</option>
+                <option value="eventos">Eventos</option>
+                <option value="parcerias-educacionais">Parcerias educacionais</option>
+              </select>
+              <span class="erro-campo" id="e-tema">Selecione um tema.</span>
+            </div>
+
+            <div class="campo" id="c-formato">
+              <label for="formato">Formato de interesse <span class="obrigatorio" aria-hidden="true">*</span></label>
+              <select id="formato" name="formato" required aria-required="true" aria-describedby="e-formato">
+                <option value="">Selecione</option>
+                <option value="formacao-aberta">Formação aberta</option>
+                <option value="capacitacao-equipe">Capacitação para equipe</option>
+                <option value="palestra">Palestra</option>
+                <option value="evento">Evento</option>
+                <option value="conteudo">Conteúdo</option>
+                <option value="parceria-educacional">Parceria educacional</option>
+                <option value="acompanhar">Apenas acompanhar novidades</option>
+              </select>
+              <span class="erro-campo" id="e-formato">Selecione um formato.</span>
+            </div>
+
+            <div class="campo campo-largo" id="c-mensagem">
+              <label for="mensagem">Mensagem <span class="ajuda">(opcional)</span></label>
+              <textarea id="mensagem" name="mensagem" rows="4"></textarea>
+              <span class="ajuda">Não inclua dados sigilosos ou informações de investigações em andamento.</span>
+            </div>
+          </div>
+
+          <div class="campo" id="c-consent" style="margin-top:22px">
+            <div class="consent">
+              <input type="checkbox" id="consentimento" name="consentimento" required aria-required="true" aria-describedby="e-consent" />
+              <label for="consentimento">
+                Autorizo o uso dos dados informados para receber comunicações da GLAUX sobre suas
+                formações, capacitações, conteúdos e eventos, conforme a
+                <a href="privacidade.html">Política de Privacidade</a>.
+              </label>
+            </div>
+            <span class="erro-campo" id="e-consent" style="margin-top:8px">É necessário autorizar o uso dos dados para prosseguir.</span>
+          </div>
+
+          <div class="armadilha" aria-hidden="true">
+            <label for="website">Não preencha este campo</label>
+            <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+          </div>
+
+          <button class="btn btn-primario btn-bloco" id="btn-enviar" type="submit" style="margin-top:26px">
+            <span id="btn-texto">Registrar meu interesse</span>
+          </button>
+
+          <p class="form-status" id="form-status" role="status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 11. FAQ =================== -->
+<section class="secao secao-offwhite" id="faq">
+  <div class="wrap">
+    <p class="eyebrow">Perguntas frequentes</p>
+    <h2 class="h-secao">Perguntas frequentes</h2>
+
+    <div class="faq">
+      <details>
+        <summary>O que é a GLAUX?
+          <svg class="sinal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+        </summary>
+        <div class="resposta">A GLAUX é uma instituição de educação aplicada em tecnologia, investigação e evidência.</div>
+      </details>
+
+      <details>
+        <summary>A GLAUX já possui cursos disponíveis?
+          <svg class="sinal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+        </summary>
+        <div class="resposta">As primeiras formações e capacitações estão em estruturação. O cadastro de interesse ajuda a orientar temas, públicos e formatos prioritários.</div>
+      </details>
+
+      <details>
+        <summary>A GLAUX oferece capacitações para equipes?
+          <svg class="sinal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+        </summary>
+        <div class="resposta">A marca pretende desenvolver programas educacionais fechados e adaptados às necessidades de aprendizagem de organizações e escritórios.</div>
+      </details>
+
+      <details>
+        <summary>A GLAUX presta consultoria?
+          <svg class="sinal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+        </summary>
+        <div class="resposta">A atuação atual da GLAUX está concentrada em educação, formação, instrução e desenvolvimento de capacidades. A marca não oferece consultoria jurídica, assessoria institucional ou auditoria.</div>
+      </details>
+
+      <details>
+        <summary>Como acompanhar as novidades?
+          <svg class="sinal" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M10 4v12M4 10h12"/></svg>
+        </summary>
+        <div class="resposta">Registre seu interesse no formulário e acompanhe os canais institucionais verificados.</div>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- =================== 12. CTA FINAL =================== -->
+<section class="secao secao-escura" id="cta-final">
+  <div class="wrap cta-final">
+    <div>
+      <h2>Tecnologia exige mais do que acesso. Exige método.</h2>
+      <p class="lead" style="margin-top:20px">
+        Cadastre seu interesse e acompanhe o desenvolvimento das primeiras formações, capacitações
+        e iniciativas da GLAUX.
+      </p>
+    </div>
+    <a class="btn btn-primario" href="#interesse">Registrar meu interesse</a>
+  </div>
+</section>
+
+</main>
+
+<!-- =================== 13. RODAPÉ =================== -->
+<footer class="rodape">
+  <div class="wrap">
+    <div class="rodape-grid">
+      <div>
+        <span class="marca">
+          <img src="assets/GLAUX_Wordmark_Negativa_Branca.svg" alt="GLAUX" width="1801" height="413" />
+        </span>
+        <p class="micro" style="margin-top:16px; color:var(--sobre-escuro-suave); max-width:34ch">
+          Educação aplicada em tecnologia, investigação e evidência.
+        </p>
+      </div>
+
+      <nav aria-labelledby="rodape-navegacao">
+        <h2 id="rodape-navegacao">Navegação</h2>
+        <ul>
+          <li><a href="#sobre">Sobre</a></li>
+          <li><a href="#para-quem">Para quem</a></li>
+          <li><a href="#temas">Temas</a></li>
+          <li><a href="#interesse">Interesse</a></li>
+        </ul>
+      </nav>
+
+      <nav aria-labelledby="rodape-legal">
+        <h2 id="rodape-legal">Institucional</h2>
+        <ul>
+          <li><a href="privacidade.html">Política de Privacidade</a></li>
+        </ul>
+      </nav>
+
+      <div>
+        <h2>Canais verificados</h2>
+        <ul>
+          <li><a href="mailto:contato@glauxconecta.com.br">contato@glauxconecta.com.br</a></li>
+          <li>
+            <a href="https://www.instagram.com/glaux_educacional/" target="_blank" rel="noopener">
+              @glaux_educacional
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <p class="independencia">
+      A GLAUX é uma marca privada e independente. Seus conteúdos e formações não representam
+      posição oficial de órgãos públicos ou instituições às quais seus professores estejam vinculados.
+    </p>
+
+    <p class="legal">
+      GLAUX é uma marca de CADJUR — Aperfeiçoamento e Desenvolvimento Jurídico Ltda,
+      CNPJ 53.757.264/0001-50
+      · © <span id="ano">2026</span> GLAUX
+    </p>
+  </div>
+</footer>
+
+<!-- Confirmação de envio. <dialog> nativo: traz travamento de foco, fechamento
+     por Esc e inerte no resto da página, sem biblioteca. -->
+<dialog id="modal-sucesso" aria-labelledby="modal-titulo">
+  <div class="modal-corpo">
+    <div class="modal-icone" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M20 6L9 17l-5-5" />
+      </svg>
+    </div>
+
+    <h2 id="modal-titulo">Interesse registrado</h2>
+
+    <p class="modal-texto">
+      Recebemos seu registro. Você passa a receber as novidades da GLAUX no e-mail
+      informado — lançamentos de formações, conteúdos e eventos.
+    </p>
+
+    <p class="modal-nota">
+      Não há envio frequente e nenhum dado é compartilhado com terceiros. Para corrigir
+      ou excluir suas informações, escreva para
+      <a href="mailto:contato@glauxconecta.com.br">contato@glauxconecta.com.br</a>
+      ou consulte a <a href="privacidade.html">Política de Privacidade</a>.
+    </p>
+
+    <button type="button" class="btn btn-primario btn-bloco" id="modal-fechar" autofocus>Fechar</button>
+  </div>
+</dialog>
+
+<script>
+(function () {
+  "use strict";
+
+  var semMovimento = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  /* ---------- Menu mobile ---------- */
+  var btn = document.getElementById("menu-btn");
+  var menu = document.getElementById("menu-mobile");
+
+  function abrirMenu(aberto) {
+    menu.setAttribute("data-aberto", String(aberto));
+    btn.setAttribute("aria-expanded", String(aberto));
+    btn.setAttribute("aria-label", aberto ? "Fechar menu de navegação" : "Abrir menu de navegação");
+  }
+
+  btn.addEventListener("click", function () {
+    abrirMenu(menu.getAttribute("data-aberto") !== "true");
+  });
+
+  menu.addEventListener("click", function (e) {
+    if (e.target.closest("a")) abrirMenu(false);
+  });
+
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && menu.getAttribute("data-aberto") === "true") {
+      abrirMenu(false);
+      btn.focus();
+    }
+  });
+
+  /* ---------- Ano do rodapé ---------- */
+  document.getElementById("ano").textContent = String(new Date().getFullYear());
+
+  /* ---------- Hero: pontos dispersos organizando-se em estrutura ----------
+     Animação única e discreta: roda uma vez ao entrar em tela e para.
+     Sem laço contínuo; com prefers-reduced-motion desenha o estado final. */
+  (function campoOrganizacao() {
+    var canvas = document.getElementById("campo-organizacao");
+    if (!canvas || !canvas.getContext) return;
+    var ctx = canvas.getContext("2d");
+
+    var COLS = 8, LINHAS = 5, TOTAL = COLS * LINHAS;
+    var pontos = [];
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+    function dimensionar() {
+      var r = canvas.getBoundingClientRect();
+      canvas.width = Math.round(r.width * dpr);
+      canvas.height = Math.round(r.height * dpr);
+    }
+
+    function semear() {
+      pontos = [];
+      var w = canvas.width, h = canvas.height;
+      var mx = w * 0.12, my = h * 0.16;
+      for (var i = 0; i < TOTAL; i++) {
+        var c = i % COLS, l = Math.floor(i / COLS);
+        pontos.push({
+          x0: mx + Math.random() * (w - mx * 2),
+          y0: my + Math.random() * (h - my * 2),
+          x1: mx + (c / (COLS - 1)) * (w - mx * 2),
+          y1: my + (l / (LINHAS - 1)) * (h - my * 2)
+        });
+      }
+    }
+
+    function desenhar(t) {
+      var w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      // linhas de estrutura surgem junto com a organização dos pontos
+      if (t > 0.55) {
+        var a = (t - 0.55) / 0.45;
+        ctx.strokeStyle = "rgba(126, 163, 152, " + (a * 0.30).toFixed(3) + ")";
+        ctx.lineWidth = 1 * dpr;
+        for (var i = 0; i < pontos.length; i++) {
+          if (i % COLS === COLS - 1) continue;
+          var p = pontos[i], q = pontos[i + 1];
+          ctx.beginPath();
+          ctx.moveTo(p.x1, p.y1);
+          ctx.lineTo(q.x1, q.y1);
+          ctx.stroke();
+        }
+      }
+
+      var e = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; // easeInOutCubic
+      for (var j = 0; j < pontos.length; j++) {
+        var pt = pontos[j];
+        var x = pt.x0 + (pt.x1 - pt.x0) * e;
+        var y = pt.y0 + (pt.y1 - pt.y0) * e;
+        ctx.fillStyle = e > 0.9 ? "#7EA398" : "rgba(126, 163, 152, 0.55)";
+        ctx.beginPath();
+        ctx.arc(x, y, 2.6 * dpr, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function animarUmaVez() {
+      var inicio = null, DUR = 1600;
+      function passo(ts) {
+        if (inicio === null) inicio = ts;
+        var t = Math.min((ts - inicio) / DUR, 1);
+        desenhar(t);
+        if (t < 1) requestAnimationFrame(passo); // para ao concluir
+      }
+      requestAnimationFrame(passo);
+    }
+
+    dimensionar();
+    semear();
+
+    if (semMovimento.matches) {
+      desenhar(1);
+    } else if ("IntersectionObserver" in window) {
+      var obs = new IntersectionObserver(function (entradas) {
+        entradas.forEach(function (en) {
+          if (en.isIntersecting) { animarUmaVez(); obs.disconnect(); }
+        });
+      }, { threshold: 0.35 });
+      obs.observe(canvas);
+    } else {
+      animarUmaVez();
+    }
+
+    var redimensionar;
+    window.addEventListener("resize", function () {
+      clearTimeout(redimensionar);
+      redimensionar = setTimeout(function () {
+        dimensionar(); semear(); desenhar(1);
+      }, 180);
+    });
+  })();
+
+  /* ---------- Método: marcação sequencial das etapas (uma vez) ---------- */
+  (function metodo() {
+    var etapas = document.querySelectorAll("#metodo .etapa");
+    if (!etapas.length) return;
+    if (semMovimento.matches || !("IntersectionObserver" in window)) {
+      etapas.forEach(function (el) { el.setAttribute("data-ativa", "true"); });
+      return;
+    }
+    var obs = new IntersectionObserver(function (entradas) {
+      entradas.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        etapas.forEach(function (el, i) {
+          setTimeout(function () { el.setAttribute("data-ativa", "true"); }, i * 180);
+        });
+        obs.disconnect();
+      });
+    }, { threshold: 0.4 });
+    obs.observe(document.getElementById("metodo"));
+  })();
+
+  /* ---------- Formulário: validação, envio e mensagens ---------- */
+
+  /* URL /exec da implantação do Apps Script (ver apps-script/Codigo.gs).
+     Enquanto estiver com o valor abaixo, o formulário recusa o envio em vez
+     de fingir sucesso. */
+  var ENDPOINT_FORMULARIO = "https://script.google.com/macros/s/AKfycby4cEnQSquNgfaYaHzXa7m1b60Fcp_2rhR3k84JmQT1sEsL_GAiGETqHBO67Uj3O5b2/exec";
+
+  (function formulario() {
+    var form = document.getElementById("form-interesse");
+    var status = document.getElementById("form-status");
+    var botao = document.getElementById("btn-enviar");
+    var btnTexto = document.getElementById("btn-texto");
+    if (!form) return;
+
+    var regras = [
+      { campo: "c-nome", controle: "nome" },
+      { campo: "c-email", controle: "email" },
+      { campo: "c-tema", controle: "tema" },
+      { campo: "c-formato", controle: "formato" },
+      { campo: "c-consent", controle: "consentimento" }
+    ];
+
+    function validar() {
+      var primeiroInvalido = null;
+      regras.forEach(function (r) {
+        var wrapper = document.getElementById(r.campo);
+        var el = document.getElementById(r.controle);
+        var ok = el.type === "checkbox" ? el.checked : el.checkValidity() && el.value.trim() !== "";
+        wrapper.setAttribute("data-erro", ok ? "false" : "true");
+        el.setAttribute("aria-invalid", ok ? "false" : "true");
+        if (!ok && !primeiroInvalido) primeiroInvalido = el;
+      });
+      return primeiroInvalido;
+    }
+
+    var modal = document.getElementById("modal-sucesso");
+
+    function confirmarEnvio() {
+      // Sem <dialog> (navegador antigo), cai na mensagem em linha — o visitante
+      // recebe confirmação de qualquer forma.
+      if (!modal || typeof modal.showModal !== "function") {
+        mostrarStatus("sucesso", "Interesse registrado.",
+          "Você passa a receber as novidades da GLAUX no e-mail informado.");
+        return;
+      }
+      status.removeAttribute("data-tipo");
+      modal.showModal();
+    }
+
+    if (modal) {
+      document.getElementById("modal-fechar").addEventListener("click", function () {
+        modal.close();
+      });
+
+      // Clique fora do cartão fecha. O <dialog> recebe o clique do backdrop,
+      // então comparar o alvo com o próprio elemento distingue dentro de fora.
+      modal.addEventListener("click", function (e) {
+        if (e.target === modal) modal.close();
+      });
+
+      // Devolve o foco ao botão de envio ao fechar, para quem navega por teclado
+      // não voltar ao topo do documento.
+      modal.addEventListener("close", function () {
+        botao.focus();
+      });
+    }
+
+    function mostrarStatus(tipo, rotulo, texto) {
+      status.setAttribute("data-tipo", tipo);
+      status.innerHTML = '<span class="rotulo"></span><span class="corpo"></span>';
+      status.querySelector(".rotulo").textContent = rotulo + " ";
+      status.querySelector(".corpo").textContent = texto;
+
+      // O formulário é longo: em tela pequena a mensagem pode nascer fora da
+      // área visível. Sem isto, o envio parece não ter feito nada.
+      // Respeita quem pediu menos movimento no sistema operacional.
+      var suave = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      status.scrollIntoView({ behavior: suave ? "smooth" : "auto", block: "center" });
+    }
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      var invalido = validar();
+      if (invalido) {
+        mostrarStatus("erro", "Não foi possível enviar:",
+          "verifique os campos destacados e tente novamente.");
+        invalido.focus();
+        return;
+      }
+
+      if (ENDPOINT_FORMULARIO.indexOf("COLE_AQUI") === 0) {
+        console.error("ENDPOINT_FORMULARIO não configurado: o envio não tem destino.");
+        mostrarStatus("erro", "Envio indisponível no momento.",
+          "Estamos ajustando o registro de interesse. Tente novamente mais tarde.");
+        return;
+      }
+
+      // Estado de carregamento
+      botao.disabled = true;
+      botao.setAttribute("aria-busy", "true");
+      btnTexto.textContent = "Enviando…";
+      status.removeAttribute("data-tipo");
+
+      function encerrarCarregamento() {
+        botao.disabled = false;
+        botao.removeAttribute("aria-busy");
+        btnTexto.textContent = "Registrar meu interesse";
+      }
+
+      var dados = {
+        nome: form.nome.value.trim(),
+        email: form.email.value.trim(),
+        organizacao: form.organizacao.value.trim(),
+        area: form.area.value.trim(),
+        // Envia o rótulo visível ("Inteligência artificial"), não o value
+        // ("inteligencia-artificial"): quem lê a planilha é pessoa, não código.
+        tema: form.tema.options[form.tema.selectedIndex].text.trim(),
+        formato: form.formato.options[form.formato.selectedIndex].text.trim(),
+        mensagem: form.mensagem.value.trim(),
+        consentimento: form.consentimento.checked,
+        website: form.website.value,       // armadilha anti-robô
+        origem: location.origin + location.pathname
+      };
+
+      // Sem rede o fetch fica pendurado por padrão; 15s evita o botão travado.
+      var controle = new AbortController();
+      var expirou = setTimeout(function () { controle.abort(); }, 15000);
+
+      // text/plain de propósito: mantém a requisição "simples" e evita o
+      // preflight OPTIONS, que o Apps Script não responde. O corpo é JSON.
+      fetch(ENDPOINT_FORMULARIO, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify(dados),
+        signal: controle.signal
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error("HTTP " + r.status);
+          return r.json();
+        })
+        .then(function (resposta) {
+          if (!resposta || resposta.ok !== true) {
+            throw new Error(resposta && resposta.erro ? resposta.erro : "Resposta inesperada.");
+          }
+
+          confirmarEnvio();
+
+          form.reset();
+          regras.forEach(function (r) {
+            document.getElementById(r.campo).setAttribute("data-erro", "false");
+            document.getElementById(r.controle).setAttribute("aria-invalid", "false");
+          });
+        })
+        .catch(function (err) {
+          console.error("Falha no envio do formulário:", err);
+          mostrarStatus("erro", "Não foi possível enviar.",
+            "Verifique sua conexão e tente novamente. Se o problema continuar, escreva para o e-mail institucional.");
+        })
+        .then(function () {
+          clearTimeout(expirou);
+          encerrarCarregamento();
+        });
+    });
+
+    // Limpa o erro do campo assim que o usuário corrige
+    regras.forEach(function (r) {
+      var el = document.getElementById(r.controle);
+      el.addEventListener("input", function () {
+        var ok = el.type === "checkbox" ? el.checked : el.value.trim() !== "";
+        if (ok) {
+          document.getElementById(r.campo).setAttribute("data-erro", "false");
+          el.setAttribute("aria-invalid", "false");
+        }
+      });
+      el.addEventListener("change", function () {
+        var ok = el.type === "checkbox" ? el.checked : el.value.trim() !== "";
+        if (ok) {
+          document.getElementById(r.campo).setAttribute("data-erro", "false");
+          el.setAttribute("aria-invalid", "false");
+        }
+      });
+    });
+  })();
+})();
+</script>
+</body>
+</html>
