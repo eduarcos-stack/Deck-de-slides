@@ -117,3 +117,52 @@ export async function traceObject(objectType, objectId) {
   if (!r.ok) throw new Error("Falha ao rastrear");
   return r.json();
 }
+
+// --- Milestone 4 — Temporal / EDA / Findings / Adversarial ---
+export async function temporalQuality(datasetId, mode = "strict") {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/temporal/quality?mode=${mode}`);
+  if (!r.ok) throw new Error("Falha na qualidade temporal");
+  return r.json();
+}
+
+export async function edaHours(datasetId, mode = "strict") {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/eda/hours?mode=${mode}`);
+  if (!r.ok) throw new Error("Falha no histograma");
+  return r.json();
+}
+
+export async function edaOutliers(datasetId, field = "amount") {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/eda/outliers?field=${field}`);
+  if (!r.ok) throw new Error("Falha nos outliers");
+  return r.json();
+}
+
+export async function edaFrequencies(datasetId, field) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/eda/frequencies?field=${field}`);
+  if (!r.ok) throw new Error("Falha nas frequências");
+  return r.json();
+}
+
+export async function detectTemporalPeak(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/eda/detect-temporal-peak`, { method: "POST" });
+  if (!r.ok) throw new Error("Falha ao detectar pico");
+  return r.json();
+}
+
+export async function patternStability(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/eda/pattern-stability`);
+  if (!r.ok) throw new Error("Falha na estabilidade");
+  return r.json();
+}
+
+export async function listFindings(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/findings`);
+  if (!r.ok) throw new Error("Falha ao listar findings");
+  return r.json();
+}
+
+export async function auditFinding(datasetId, findingId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/findings/${findingId}/audit`, { method: "POST" });
+  if (!r.ok) throw new Error("Falha na auditoria");
+  return r.json();
+}

@@ -103,6 +103,21 @@ CREATE TABLE IF NOT EXISTS entity_membership (
     FOREIGN KEY (entity_id) REFERENCES entities(entity_id)
 );
 
+-- Finding (§55): padrão identificado nos dados. Status EXPLORATORY por padrão
+-- (§28) — nunca CONCLUSION sem passar pela escada epistemológica (§29).
+CREATE TABLE IF NOT EXISTS findings (
+    finding_id      TEXT PRIMARY KEY,
+    dataset_id      TEXT NOT NULL,
+    type            TEXT NOT NULL,
+    statement       TEXT NOT NULL,
+    status          TEXT NOT NULL DEFAULT 'EXPLORATORY_FINDING',
+    method          TEXT NOT NULL DEFAULT '{}',   -- parâmetros/decisões metodológicas
+    evidence        TEXT NOT NULL DEFAULT '{}',
+    confidence      TEXT NOT NULL DEFAULT 'low',
+    robust          INTEGER,                       -- NULL até auditar estabilidade
+    created_at      TEXT NOT NULL
+);
+
 -- Provenance Graph (§34): arestas dirigidas entre objetos do sistema.
 CREATE TABLE IF NOT EXISTS provenance_edges (
     edge_id     INTEGER PRIMARY KEY AUTOINCREMENT,

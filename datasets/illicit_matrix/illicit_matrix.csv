@@ -29,7 +29,7 @@ R027,EVT-C007,17/08/2024 20h32,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 9
 R028,EVT-C008,19/08/2024 12h04,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,33980-1,Sigma ME,61599.19,BRL,PIX,Cariacica,DEV-676,Vanguarda,
 R029,EVT-C009,2024-08-20T19:20:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,82016-2,BR Trade,48290.49,BRL,PIX,Cariacica,DEV-500,Vanguarda,
 R030,EVT-C010,2024-08-17T22:59:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,48591-7,Sigma ME,48961.70,BRL,PIX,Cariacica,DEV-646,Nexus,
-R031,EVT-C011,2024-08-17T20:04:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,23323-7,Sigma ME,14647.99,BRL,saque,Cariacica,DEV-906,Vanguarda,
+R031,EVT-C011,2024-08-17T20:04:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,23323-7,Sigma ME,4875200.00,BRL,saque,Cariacica,DEV-906,Vanguarda,valor atipico (outlier artificial)
 R032,EVT-C012,20/08/2024 22:40 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,17323-8,Sigma ME,29317.14,BRL,PIX,Vitória,DEV-907,Vanguarda,
 R033,EVT-C013,2024-08-18T15:03:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 99999-1234,rafael@mail.test,Vanguarda Fomento,42312-5,Sigma ME,18059.58,BRL,TED,Cariacica,DEV-986,Vanguarda,
 R034,EVT-C014,2024-08-11T23:40:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,35975-0,BR Trade,9161.88,BRL,TED,Vila Velha,DEV-676,Vanguarda,

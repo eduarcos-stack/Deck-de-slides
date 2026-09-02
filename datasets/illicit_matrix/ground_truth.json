@@ -41,5 +41,10 @@
     "count": 2,
     "note": "timestamp 24:00 — risco de colapso p/ meia-noite (§89)"
   },
+  "amount_outlier": {
+    "record_index": 30,
+    "value": "4875200.00",
+    "note": "outlier artificial de valor — não é indício de ilicitude (§30)"
+  },
   "seed": 20240815
 }

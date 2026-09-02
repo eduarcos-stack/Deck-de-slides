@@ -154,6 +154,11 @@ def build() -> list[dict]:
                 notes="hora ambigua (24:00)")
         gt_midnight.append(r["record_id"])
 
+    # 1 outlier de valor artificial (§66, §82) — para testar a Outlier Policy (§30).
+    # Não é indício de ilicitude: é uma armadilha estatística.
+    rows[30]["amount"] = "4875200.00"
+    rows[30]["notes"] = "valor atipico (outlier artificial)"
+
     return rows
 
 
@@ -180,6 +185,8 @@ def main() -> None:
         "legitimate_repeated_events": {"count": 3, "note": "parcelas recorrentes de Carlos A"},
         "missing_sentinel_records": {"count": 8},
         "temporal_anomalies": {"count": 2, "note": "timestamp 24:00 — risco de colapso p/ meia-noite (§89)"},
+        "amount_outlier": {"record_index": 30, "value": "4875200.00",
+                           "note": "outlier artificial de valor — não é indício de ilicitude (§30)"},
         "seed": SEED,
     }
     (HERE / "ground_truth.json").write_text(

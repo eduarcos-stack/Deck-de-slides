@@ -5,6 +5,8 @@ import DataView from "./components/DataView.jsx";
 import QualityView from "./components/QualityView.jsx";
 import TransformView from "./components/TransformView.jsx";
 import EntitiesView from "./components/EntitiesView.jsx";
+import ExploreView from "./components/ExploreView.jsx";
+import FindingsView from "./components/FindingsView.jsx";
 import AuditView from "./components/AuditView.jsx";
 
 const TABS = [
@@ -13,6 +15,8 @@ const TABS = [
   { id: "quality", label: "QUALITY", enabled: true },
   { id: "transform", label: "TRANSFORM", enabled: true },
   { id: "entities", label: "ENTITIES", enabled: true },
+  { id: "explore", label: "EXPLORE", enabled: true },
+  { id: "findings", label: "FINDINGS", enabled: true },
   { id: "audit", label: "AUDIT", enabled: true },
 ];
 
@@ -86,6 +90,12 @@ export default function App() {
         )}
         {tab === "entities" && (
           <EntitiesView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
+        )}
+        {tab === "explore" && (
+          <ExploreView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
+        )}
+        {tab === "findings" && (
+          <FindingsView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
         )}
         {tab === "audit" && (
           <AuditView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />

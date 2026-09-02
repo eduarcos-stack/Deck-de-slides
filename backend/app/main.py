@@ -18,12 +18,15 @@ from pydantic import BaseModel
 from app.core.db import connect, init_db
 from app.governance import provenance
 from app.modules import (
+    adversarial,
     deduplication,
+    eda,
     entity_resolution,
     ingestion,
     normalization,
     profiling,
     rules,
+    temporal,
 )
 
 app = FastAPI(
@@ -314,3 +317,91 @@ def trace(object_type: str, object_id: str) -> dict:
         "object": {"type": object_type, "id": object_id},
         "path": provenance.trace_back(object_type, object_id),
     }
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 4 — Temporal Engine, EDA/Findings e Adversarial Auditor (§18-42)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/temporal/quality")
+def temporal_quality(dataset_id: str, mode: str = "strict") -> dict:
+    """Qualidade temporal dos timestamps (§18-19). Não valida o relógio (P6)."""
+    _require_dataset(dataset_id)
+    import json as _json
+
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT original_payload FROM raw_records WHERE dataset_id = ?", (dataset_id,)
+        ).fetchall()
+    parses = [temporal.parse(_json.loads(r["original_payload"]).get("timestamp"), mode)
+              for r in rows]
+    return {
+        "dataset_id": dataset_id,
+        "mode": mode,
+        "quality_distribution": temporal.quality_summary(parses),
+        "samples": [temporal.as_dict(p) for p in parses[:10]],
+        "guardrail": ("Conversão de representação realizada. Isso não demonstra que "
+                      "o relógio de origem estava sincronizado (§18, P6)."),
+    }
+
+
+@app.get("/datasets/{dataset_id}/eda/hours")
+def eda_hours(dataset_id: str, mode: str = "strict") -> dict:
+    """Histograma de hora-do-dia (§28) sob um modo de parsing."""
+    _require_dataset(dataset_id)
+    return eda.hour_distribution(dataset_id, mode)
+
+
+@app.get("/datasets/{dataset_id}/eda/frequencies")
+def eda_frequencies(dataset_id: str, field: str) -> dict:
+    _require_dataset(dataset_id)
+    return eda.frequencies(dataset_id, field)
+
+
+@app.get("/datasets/{dataset_id}/eda/outliers")
+def eda_outliers(dataset_id: str, field: str = "amount") -> dict:
+    """Outliers com Outlier Policy (§30): outlier não é ilicitude."""
+    _require_dataset(dataset_id)
+    return eda.outliers(dataset_id, field)
+
+
+@app.post("/datasets/{dataset_id}/eda/detect-temporal-peak")
+def eda_detect_peak(dataset_id: str) -> dict:
+    """Registra o achado 'concentração 00h-02h' com Pattern Provenance (§32, §89)."""
+    _require_dataset(dataset_id)
+    return eda.detect_temporal_peak(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/eda/pattern-stability")
+def eda_stability(dataset_id: str) -> dict:
+    """Pattern Stability (§33): recalcula o pico sob naive vs strict."""
+    _require_dataset(dataset_id)
+    return eda.pattern_stability(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/findings")
+def get_findings(dataset_id: str) -> dict:
+    """Finding Registry (§55, §76). Todos EXPLORATÓRIOS por padrão (§28)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "findings": eda.list_findings(dataset_id)}
+
+
+@app.post("/datasets/{dataset_id}/findings/{finding_id}/audit")
+def audit_finding(dataset_id: str, finding_id: str) -> dict:
+    """Adversarial Auditor (§41): 'como isso poderia estar errado?'."""
+    _require_dataset(dataset_id)
+    try:
+        return adversarial.audit_finding(dataset_id, finding_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+class SCSBody(BaseModel):
+    hypothesis: str
+    support: list[str] = []
+    challenge: list[str] = []
+
+
+@app.post("/adversarial/support-challenge-synthesis")
+def scs(body: SCSBody) -> dict:
+    """Modo SUPPORT × CHALLENGE × SYNTHESIS (§42)."""
+    return adversarial.support_challenge_synthesis(body.hypothesis, body.support, body.challenge)

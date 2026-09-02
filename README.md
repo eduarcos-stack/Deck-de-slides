@@ -9,7 +9,9 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 
 ---
 
-## Estado atual — MVP completo (7/7 capacidades)
+## Estado atual — MVP completo (7/7) + roadmap M4
+
+**MVP (§81):**
 
 | # | Capacidade | Blueprint | Status |
 |---|---|---|---|
@@ -21,6 +23,18 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | 6 | Entity Resolution assistida + Impact Analysis | §22–27 | ✅ M3 |
 | 7 | Lineage / Provenance ("Como chegamos aqui?") | §34–35, §45 | ✅ M3 |
 
+**Roadmap M4 (além do MVP):**
+
+| Módulo | Blueprint | Status |
+|---|---|---|
+| Temporal Engine (parsing, qualidade temporal, guardrail P6) | §18–19 | ✅ M4 |
+| EDA + Finding Registry (histogramas, outliers, Pattern Provenance/Stability) | §28–33, §76 | ✅ M4 |
+| Adversarial Auditor ("como isso poderia estar errado?", SUPPORT×CHALLENGE) | §41–42 | ✅ M4 |
+
+> **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
+> e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
+> `24:00` para meia-noite. Reproduza nas abas EXPLORE → FINDINGS.
+
 O esqueleto de governança (Diário de Transformação §35, Provenance Graph §34,
 status epistemológicos §9) já está no código, pronto para as próximas capacidades.
 
@@ -31,12 +45,15 @@ status epistemológicos §9) já está no código, pronto para as próximas capa
 ```
 Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
   CASE · DATA · QUALITY              ├── modules/ingestion         (§10)
-  TRANSFORM · ENTITIES · AUDIT       ├── modules/raw_vault         (§11, P1)
-                                     ├── modules/profiling         (§12)
+  TRANSFORM · ENTITIES              ├── modules/raw_vault         (§11, P1)
+  EXPLORE · FINDINGS · AUDIT         ├── modules/profiling         (§12)
                                      ├── modules/rules             (§52)
                                      ├── modules/normalization     (§16-17)
                                      ├── modules/deduplication     (§20)
                                      ├── modules/entity_resolution (§22-27)
+                                     ├── modules/temporal          (§18-19)
+                                     ├── modules/eda               (§28-33)
+                                     ├── modules/adversarial       (§41-42)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)
