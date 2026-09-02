@@ -1,0 +1,73 @@
+record_id,event_id,timestamp,name,cpf,dob,phone,email,company,account,counterparty,amount,currency,channel,city,device_id,source_system,notes
+R001,EVT-A000,17/08/2024 20:24 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,36020-3,Sigma ME,12769.79,BRL,saque,Vila Velha,DEV-737,Nexus,
+R002,EVT-A001,19/08/2024 15:17 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,(27) 99999-1234,carlos@mail.test,Nexus Log LTDA,22304-0,Delta Comercial,48580.17,BRL,saque,Vila Velha,DEV-606,Nexus,
+R003,EVT-A002,15/08/2024 17:37 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,96656-9,BR Trade,25049.16,BRL,boleto,Vila Velha,DEV-998,Nexus,
+R004,EVT-A003,19/08/2024 15h44,Carlos Eduardo Silva,111.222.333-44,14/05/1980,(27) 99999-1234,carlos@mail.test,Nexus Log LTDA,19515-7,Delta Comercial,17574.11,BRL,saque,Vila Velha,DEV-536,Nexus,
+R005,EVT-A004,2024-08-13T10:37:00-03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,+55 27 99999-1234,carlos@mail.test,Nexus Log LTDA,37857-2,Sigma ME,47937.04,BRL,TED,Vila Velha,DEV-922,Nexus,
+R006,EVT-A005,14/08/2024 08:31 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,17649-4,Órion Serviços,70667.34,BRL,TED,Vila Velha,DEV-551,Nexus,
+R007,EVT-A006,12/08/2024 15h46,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,50996-4,Delta Comercial,82439.63,BRL,boleto,Vila Velha,DEV-698,Vanguarda,
+R008,EVT-A007,15/08/2024 09:11 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,(27) 99999-1234,carlos@mail.test,Nexus Log LTDA,33571-5,Delta Comercial,38806.65,BRL,PIX,Vila Velha,DEV-712,Nexus,
+R009,EVT-A008,12/08/2024 12:25 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,38246-6,Sigma ME,49957.23,BRL,saque,Vila Velha,DEV-729,Nexus,
+R010,EVT-A009,2024-08-20T19:02:00-03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,+55 27 99999-1234,carlos@mail.test,Nexus Log LTDA,61519-0,Delta Comercial,82398.70,BRL,TED,Vila Velha,DEV-409,Nexus,
+R011,EVT-A010,15/08/2024 22:09 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,(27) 99999-1234,carlos@mail.test,Nexus Log LTDA,34957-0,Órion Serviços,51211.87,BRL,saque,Vila Velha,DEV-662,Vanguarda,
+R012,EVT-A011,18/08/2024 19h42,Carlos Eduardo Silva,111.222.333-44,14/05/1980,+55 27 99999-1234,carlos@mail.test,Nexus Log LTDA,28587-3,BR Trade,27990.08,BRL,saque,Vila Velha,DEV-531,Nexus,
+R013,EVT-A012,2024-08-12T20:04:00-03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,(27) 99999-1234,carlos@mail.test,Nexus Log LTDA,67651-8,Sigma ME,85516.63,BRL,PIX,Vila Velha,DEV-598,Nexus,
+R014,EVT-A013,11/08/2024 10h11,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,16728-6,Sigma ME,8869.19,BRL,saque,Vila Velha,DEV-847,Vanguarda,
+R015,EVT-B000,19/08/2024 19:58 -03:00,Carlos Eduardo Silva,999.888.777-66,20/09/1982,27 9 9999 1234,carlos@mail.test,Vanguarda Fomento,93667-1,BR Trade,32253.41,BRL,TED,Serra,DEV-639,Nexus,
+R016,EVT-B001,15/08/2024 11:54 -03:00,Carlos Eduardo Silva,999.888.777-66,20/09/1982,27999991234,carlos@mail.test,Vanguarda Fomento,46768-1,Sigma ME,28325.79,BRL,PIX,Serra,DEV-688,Nexus,
+R017,EVT-B002,17/08/2024 15:37 -03:00,Carlos Eduardo Silva,999.888.777-66,20/09/1982,(27) 99999-1234,carlos@mail.test,Vanguarda Fomento,20655-0,Delta Comercial,50643.15,BRL,TED,Serra,DEV-437,Vanguarda,
+R018,EVT-B003,13/08/2024 12:54 -03:00,Carlos Eduardo Silva,999.888.777-66,20/09/1982,+55 27 99999-1234,carlos@mail.test,Vanguarda Fomento,49756-0,BR Trade,60706.37,BRL,TED,Serra,DEV-923,Vanguarda,
+R019,EVT-B004,20/08/2024 09h52,Carlos Eduardo Silva,999.888.777-66,20/09/1982,27 9 9999 1234,carlos@mail.test,Vanguarda Fomento,38136-0,Delta Comercial,34683.98,BRL,boleto,Serra,DEV-872,Nexus,
+R020,EVT-C000,11/08/2024 17:32 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,18459-8,BR Trade,37723.23,BRL,TED,Vitória,DEV-150,Nexus,
+R021,EVT-C001,2024-08-16T09:13:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 99999-1234,rafael@mail.test,Vanguarda Fomento,19890-5,Delta Comercial,5786.67,BRL,saque,Cariacica,DEV-514,Vanguarda,
+R022,EVT-C002,2024-08-13T12:33:00-03:00,Marina Alves Costa,222.333.444-55,03/11/1979,27999991234,marina@mail.test,Nexus Log LTDA,95074-2,Delta Comercial,73853.39,BRL,saque,Vitória,DEV-161,Vanguarda,
+R023,EVT-C003,17/08/2024 15h37,Juliana Prado,444.555.666-77,19/07/1985,27999991234,juliana@mail.test,Órion Serviços,86975-4,Delta Comercial,64103.22,BRL,saque,Vila Velha,DEV-518,Vanguarda,
+R024,EVT-C004,11/08/2024 18h13,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,28364-0,Delta Comercial,52369.51,BRL,saque,Vila Velha,DEV-879,Vanguarda,
+R025,EVT-C005,2024-08-17T11:13:00-03:00,Marina Alves Costa,222.333.444-55,03/11/1979,(27) 99999-1234,marina@mail.test,Nexus Log LTDA,31475-1,Sigma ME,3465.84,BRL,boleto,Vitória,DEV-431,Vanguarda,
+R026,EVT-C006,13/08/2024 20h55,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,81387-8,Sigma ME,2551.92,BRL,saque,Vitória,DEV-972,Nexus,
+R027,EVT-C007,17/08/2024 20h32,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 99999-1234,rafael@mail.test,Vanguarda Fomento,60307-2,Delta Comercial,76950.84,BRL,PIX,Cariacica,DEV-813,Vanguarda,
+R028,EVT-C008,19/08/2024 12h04,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,33980-1,Sigma ME,61599.19,BRL,PIX,Cariacica,DEV-676,Vanguarda,
+R029,EVT-C009,2024-08-20T19:20:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,82016-2,BR Trade,48290.49,BRL,PIX,Cariacica,DEV-500,Vanguarda,
+R030,EVT-C010,2024-08-17T22:59:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,48591-7,Sigma ME,48961.70,BRL,PIX,Cariacica,DEV-646,Nexus,
+R031,EVT-C011,2024-08-17T20:04:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,23323-7,Sigma ME,14647.99,BRL,saque,Cariacica,DEV-906,Vanguarda,
+R032,EVT-C012,20/08/2024 22:40 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,17323-8,Sigma ME,29317.14,BRL,PIX,Vitória,DEV-907,Vanguarda,
+R033,EVT-C013,2024-08-18T15:03:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 99999-1234,rafael@mail.test,Vanguarda Fomento,42312-5,Sigma ME,18059.58,BRL,TED,Cariacica,DEV-986,Vanguarda,
+R034,EVT-C014,2024-08-11T23:40:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,35975-0,BR Trade,9161.88,BRL,TED,Vila Velha,DEV-676,Vanguarda,
+R035,EVT-C015,13/08/2024 21h41,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,95540-2,Sigma ME,57933.63,BRL,boleto,Vila Velha,DEV-635,Vanguarda,
+R036,EVT-C016,2024-08-17T08:18:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27999991234,rafael@mail.test,Vanguarda Fomento,54504-5,Sigma ME,46530.34,BRL,boleto,Cariacica,DEV-342,Vanguarda,
+R037,EVT-C017,19/08/2024 15h56,Rafael Menezes,333.444.555-66,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,26578-3,Sigma ME,62034.54,BRL,TED,Cariacica,DEV-774,Vanguarda,
+R038,EVT-C018,16/08/2024 12h27,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,98086-6,BR Trade,83119.16,BRL,TED,Vila Velha,DEV-656,Nexus,
+R039,EVT-C019,13/08/2024 16h32,Rafael Menezes,333.444.555-66,27/02/1990,27999991234,rafael@mail.test,Vanguarda Fomento,54177-8,Órion Serviços,50425.87,BRL,saque,Cariacica,DEV-125,Nexus,
+R040,EVT-C020,10/08/2024 09:57 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,(27) 99999-1234,marina@mail.test,Nexus Log LTDA,13275-7,BR Trade,63160.95,BRL,saque,Vitória,DEV-565,Vanguarda,
+R041,EVT-C021,14/08/2024 19h23,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,79651-6,BR Trade,41470.11,BRL,boleto,Vila Velha,DEV-922,Vanguarda,
+R042,EVT-C022,14/08/2024 15:42 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,(27) 99999-1234,marina@mail.test,Nexus Log LTDA,53252-6,Sigma ME,39786.24,BRL,TED,Vitória,DEV-581,Nexus,
+R043,EVT-C023,2024-08-10T09:23:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,(27) 99999-1234,juliana@mail.test,Órion Serviços,80773-1,Órion Serviços,22901.88,BRL,boleto,Vila Velha,DEV-412,Vanguarda,
+R044,EVT-C024,16/08/2024 11:08 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,(27) 99999-1234,marina@mail.test,Nexus Log LTDA,90941-0,Sigma ME,80636.71,BRL,saque,Vitória,DEV-682,Nexus,
+R045,EVT-C025,18/08/2024 08h14,Juliana Prado,444.555.666-77,19/07/1985,27999991234,juliana@mail.test,Órion Serviços,41653-7,Órion Serviços,4752.34,BRL,boleto,Vila Velha,DEV-164,Nexus,
+R046,EVT-C026,16/08/2024 11:15 -03:00,Marina Alves Costa,222.333.444-55,03/11/1979,27 9 9999 1234,marina@mail.test,Nexus Log LTDA,82420-7,Delta Comercial,2093.52,BRL,saque,Vitória,DEV-432,Vanguarda,
+R047,EVT-C027,2024-08-19T11:56:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,95625-2,Sigma ME,47127.53,BRL,PIX,Vila Velha,DEV-211,Nexus,
+R048,EVT-C028,2024-08-13T14:56:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,27999991234,rafael@mail.test,Vanguarda Fomento,63889-0,Sigma ME,89399.10,BRL,TED,Cariacica,DEV-351,Nexus,
+R049,EVT-C029,2024-08-17T21:50:00-03:00,Rafael Menezes,333.444.555-66,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,83310-1,BR Trade,49645.19,BRL,TED,Cariacica,DEV-204,Nexus,
+R050,EVT-C030,2024-08-10T10:37:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,+55 27 99999-1234,juliana@mail.test,Órion Serviços,79376-2,BR Trade,59936.54,BRL,TED,Vila Velha,DEV-140,Vanguarda,
+R051,EVT-C031,12/08/2024 22:59 -03:00,Rafael Menezes,333.444.555-66,27/02/1990,+55 27 99999-1234,rafael@mail.test,Vanguarda Fomento,82121-7,Sigma ME,54321.07,BRL,TED,Cariacica,DEV-771,Nexus,
+R052,EVT-C032,14/08/2024 23h25,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,65211-5,Órion Serviços,69381.22,BRL,PIX,Vitória,DEV-581,Nexus,
+R053,EVT-C033,2024-08-14T16:13:00-03:00,Juliana Prado,444.555.666-77,19/07/1985,+55 27 99999-1234,juliana@mail.test,Órion Serviços,36012-0,Delta Comercial,81760.88,BRL,saque,Vila Velha,DEV-676,Nexus,
+R054,EVT-C034,16/08/2024 19h51,Marina Alves Costa,222.333.444-55,03/11/1979,+55 27 99999-1234,marina@mail.test,Nexus Log LTDA,53786-7,Órion Serviços,73411.05,BRL,TED,Vitória,DEV-256,Vanguarda,
+R055,EVT-C035,14/08/2024 17:25 -03:00,Juliana Prado,444.555.666-77,19/07/1985,27 9 9999 1234,juliana@mail.test,Órion Serviços,14925-2,Órion Serviços,29625.03,BRL,TED,Vila Velha,DEV-777,Nexus,
+R056,EVT-A000,17/08/2024 20:24 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,36020-3,Órion Serviços,12769.79,BRL,boleto,Vila Velha,DEV-983,Nexus,reimport lote 2
+R057,EVT-A001,19/08/2024 15:17 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,22304-0,Delta Comercial,48580.17,BRL,TED,Vila Velha,DEV-327,Nexus,reimport lote 2
+R058,EVT-A002,15/08/2024 17:37 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,96656-9,Delta Comercial,25049.16,BRL,TED,Vila Velha,DEV-663,Nexus,reimport lote 2
+R059,EVT-A003,19/08/2024 15h44,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,19515-7,Órion Serviços,17574.11,BRL,boleto,Vila Velha,DEV-707,Vanguarda,reimport lote 2
+R060,EVT-AR000,10/08/2024 09:52 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,+55 27 99999-1234,carlos@mail.test,Nexus Log LTDA,86133-1,Sigma ME,60381.24,BRL,TED,Vila Velha,DEV-162,Vanguarda,parcela recorrente
+R061,EVT-AR001,2024-08-19T20:09:00-03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,+55 27 99999-1234,carlos@mail.test,Nexus Log LTDA,46904-4,Órion Serviços,13868.07,BRL,saque,Vila Velha,DEV-610,Nexus,parcela recorrente
+R062,EVT-AR002,12/08/2024 19:28 -03:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27 9 9999 1234,carlos@mail.test,Nexus Log LTDA,92747-8,Delta Comercial,29409.24,BRL,saque,Vila Velha,DEV-284,Nexus,parcela recorrente
+R063,EVT-M984,11/08/2024 17:16 -03:00,Juliana Prado,,19/07/1985,27999991234,juliana@mail.test,Órion Serviços,84601-7,BR Trade,14102.88,BRL,PIX,Vila Velha,DEV-190,Nexus,cadastro incompleto
+R064,EVT-M290,14/08/2024 14:45 -03:00,Rafael Menezes,N/A,27/02/1990,(27) 99999-1234,rafael@mail.test,Vanguarda Fomento,40050-9,Delta Comercial,89859.19,BRL,saque,Cariacica,DEV-467,Vanguarda,cadastro incompleto
+R065,EVT-M070,16/08/2024 15:30 -03:00,Rafael Menezes,NI,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,58580-7,Delta Comercial,23208.47,BRL,saque,Cariacica,DEV-486,Nexus,cadastro incompleto
+R066,EVT-M719,10/08/2024 15h47,Marina Alves Costa,não informado,03/11/1979,27999991234,marina@mail.test,Nexus Log LTDA,72325-3,Órion Serviços,28114.84,BRL,saque,Vitória,DEV-709,Nexus,cadastro incompleto
+R067,EVT-M976,11/08/2024 17:47 -03:00,Rafael Menezes,não consta,27/02/1990,27 9 9999 1234,rafael@mail.test,Vanguarda Fomento,14159-3,Delta Comercial,60470.44,BRL,TED,Cariacica,DEV-322,Vanguarda,cadastro incompleto
+R068,EVT-M427,15/08/2024 15:04 -03:00,Marina Alves Costa,-1,03/11/1979,27999991234,marina@mail.test,Nexus Log LTDA,93162-3,Sigma ME,2186.00,BRL,saque,Vitória,DEV-436,Nexus,cadastro incompleto
+R069,EVT-M912,16/08/2024 15:59 -03:00,Juliana Prado,999999,19/07/1985,+55 27 99999-1234,juliana@mail.test,Órion Serviços,59449-4,Sigma ME,87180.45,BRL,PIX,Vila Velha,DEV-466,Vanguarda,cadastro incompleto
+R070,EVT-M114,12/08/2024 12h14,Marina Alves Costa,,03/11/1979,27 9 9999 1234,marina@mail.test,Nexus Log LTDA,29615-6,Delta Comercial,10240.91,BRL,saque,Vitória,DEV-620,Vanguarda,cadastro incompleto
+R071,EVT-T000,15/08/2024 24:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,16520-1,Delta Comercial,7588.54,BRL,PIX,Vila Velha,DEV-263,Nexus,hora ambigua (24:00)
+R072,EVT-T001,15/08/2024 24:00,Carlos Eduardo Silva,111.222.333-44,14/05/1980,27999991234,carlos@mail.test,Nexus Log LTDA,83745-7,Órion Serviços,45550.66,BRL,boleto,Vila Velha,DEV-526,Nexus,hora ambigua (24:00)

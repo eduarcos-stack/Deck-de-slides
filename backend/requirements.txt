@@ -1,0 +1,10 @@
+# TRACE-LM MVP — dependências do backend (Blueprint §54, subconjunto local-first)
+fastapi>=0.110
+uvicorn[standard]>=0.29
+python-multipart>=0.0.9   # upload de arquivos na ingestão
+pydantic>=2.6
+polars>=0.20              # processamento determinístico e reproduzível
+rapidfuzz>=3.6            # similarity/Entity Resolution (M3)
+fastexcel>=0.10           # leitura de XLSX via polars.read_excel
+pytest>=8.0               # validação (§80)
+httpx>=0.27               # TestClient do FastAPI
