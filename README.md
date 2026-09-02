@@ -30,10 +30,15 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Temporal Engine (parsing, qualidade temporal, guardrail P6) | §18–19 | ✅ M4 |
 | EDA + Finding Registry (histogramas, outliers, Pattern Provenance/Stability) | §28–33, §76 | ✅ M4 |
 | Adversarial Auditor ("como isso poderia estar errado?", SUPPORT×CHALLENGE) | §41–42 | ✅ M4 |
+| Rollback + Dependency Graph + Invalidação Automática | §57–59, P10 | ✅ M5 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
 > `24:00` para meia-noite. Reproduza nas abas EXPLORE → FINDINGS.
+>
+> **Demonstração §57-59:** um achado depende de um merge de entidade; reverter o merge
+> (aba AUDIT) marca o achado como `STALE_REQUIRES_RECOMPUTATION` automaticamente. O diário
+> não é apagado (§36) — a reversão registra uma transformação inversa.
 
 O esqueleto de governança (Diário de Transformação §35, Provenance Graph §34,
 status epistemológicos §9) já está no código, pronto para as próximas capacidades.
@@ -54,6 +59,7 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/temporal          (§18-19)
                                      ├── modules/eda               (§28-33)
                                      ├── modules/adversarial       (§41-42)
+                                     ├── modules/rollback          (§57-59)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

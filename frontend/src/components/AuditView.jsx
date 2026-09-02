@@ -10,11 +10,40 @@ export default function AuditView({ datasetId, datasets, onPick }) {
   const [trace, setTrace] = useState(null);
   const [err, setErr] = useState(null);
 
-  useEffect(() => {
+  const [reversible, setReversible] = useState([]);
+  const [operator, setOperator] = useState("");
+  const [rbMsg, setRbMsg] = useState(null);
+  const [deps, setDeps] = useState({});
+
+  function refresh() {
     if (!datasetId) return;
-    setProv(null); setTrace(null);
     api.getProvenance(datasetId).then(setProv).catch((e) => setErr(e.message));
+    api.listReversible(datasetId).then((r) => setReversible(r.transformations)).catch(() => {});
+  }
+
+  useEffect(() => {
+    setProv(null); setTrace(null); setRbMsg(null); setDeps({});
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [datasetId]);
+
+  async function showDeps(tid) {
+    try {
+      const d = await api.txDependencies(datasetId, tid);
+      setDeps((prev) => ({ ...prev, [tid]: d }));
+    } catch (e) { setErr(e.message); }
+  }
+
+  async function rollback(tid) {
+    if (!operator) { setErr("Informe o operador (P9)."); return; }
+    setErr(null);
+    try {
+      const r = await api.doRollback(datasetId, tid, operator, "rollback via UI");
+      setRbMsg(`Revertido ${r.original_rule}. Desfeito: ${JSON.stringify(r.undone)}. ` +
+        `Achados invalidados: ${r.invalidated_findings.length}.`);
+      refresh();
+    } catch (e) { setErr(e.message); }
+  }
 
   async function howDidWeGetHere(type, id) {
     setTrace({ loading: true, object: { type, id } });
@@ -93,6 +122,58 @@ export default function AuditView({ datasetId, datasets, onPick }) {
                 )}
             </div>
           )}
+
+          <div className="card">
+            <h1 style={{ fontSize: 15 }}>Reversibilidade & Rollback (§57-59)</h1>
+            <p className="roadmap">
+              Reverter não apaga o diário (§36): registra transformação inversa e
+              invalida achados dependentes (§59). O raw permanece intacto (P1).
+            </p>
+            {rbMsg && <div className="banner ok">{rbMsg}</div>}
+            {reversible.length === 0 ? (
+              <p className="empty">Nenhuma transformação reversível pendente.</p>
+            ) : (
+              <>
+                <div style={{ margin: "8px 0" }}>
+                  <label>Operador que reverte (P9)</label>
+                  <input type="text" placeholder="ex.: eduardo.arcos" value={operator}
+                    onChange={(e) => setOperator(e.target.value)} style={{ maxWidth: 280 }} />
+                </div>
+                <table>
+                  <thead><tr><th>regra</th><th>v</th><th>ferramenta</th><th>afetados</th><th></th><th></th></tr></thead>
+                  <tbody>
+                    {reversible.map((t) => (
+                      <React.Fragment key={t.transformation_id}>
+                        <tr>
+                          <td className="mono">{t.rule_id}</td>
+                          <td>{t.rule_version}</td>
+                          <td className="roadmap">{t.tool}</td>
+                          <td>{t.records_affected}</td>
+                          <td>
+                            <button className="primary" style={{ margin: 0, padding: "4px 10px", background: "var(--panel-2)" }}
+                              onClick={() => showDeps(t.transformation_id)}>dependências</button>
+                          </td>
+                          <td>
+                            <button className="primary" style={{ margin: 0, padding: "4px 10px", background: "var(--danger)" }}
+                              onClick={() => rollback(t.transformation_id)}>Reverter</button>
+                          </td>
+                        </tr>
+                        {deps[t.transformation_id] && (
+                          <tr>
+                            <td colSpan={6} className="roadmap" style={{ background: "var(--panel-2)" }}>
+                              campos derivados: {deps[t.transformation_id].derived_fields.join(", ") || "—"} ·
+                              entidades: {deps[t.transformation_id].produced_entities.join(", ") || "—"} ·
+                              achados dependentes: {deps[t.transformation_id].dependent_findings.join(", ") || "—"}
+                            </td>
+                          </tr>
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
 
           <div className="card">
             <h1 style={{ fontSize: 15 }}>Provenance Graph — arestas (§34)</h1>

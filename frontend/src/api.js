@@ -166,3 +166,32 @@ export async function auditFinding(datasetId, findingId) {
   if (!r.ok) throw new Error("Falha na auditoria");
   return r.json();
 }
+
+// --- Milestone 5 — Rollback + Invalidação automática ---
+export async function entityFinding(datasetId, entityId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/entities/${entityId}/finding`, { method: "POST" });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha ao gerar achado");
+  return r.json();
+}
+
+export async function listReversible(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/reversible`);
+  if (!r.ok) throw new Error("Falha ao listar reversíveis");
+  return r.json();
+}
+
+export async function txDependencies(datasetId, transformationId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/transformations/${transformationId}/dependencies`);
+  if (!r.ok) throw new Error("Falha nas dependências");
+  return r.json();
+}
+
+export async function doRollback(datasetId, transformationId, actor, justification) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/transformations/${transformationId}/rollback`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ actor, justification }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no rollback");
+  return r.json();
+}

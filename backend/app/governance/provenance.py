@@ -98,6 +98,52 @@ def trace_back(dst_type: str, dst_id: str, max_depth: int = 50) -> list[dict]:
     return path
 
 
+def trace_forward(src_type: str, src_id: str, max_depth: int = 50) -> list[dict]:
+    """Percorre o grafo no sentido direto: o que DEPENDE deste objeto (§58).
+
+    Espelho de trace_back. Usado pelo Dependency Graph e pela Invalidação
+    Automática (§59) para descobrir quais objetos derivam de uma transformação
+    ou entidade que será revertida.
+    """
+    visited: set[tuple[str, str]] = set()
+    frontier: list[tuple[str, str, int]] = [(src_type, src_id, 0)]
+    path: list[dict] = []
+    with connect() as conn:
+        while frontier:
+            cur_type, cur_id, depth = frontier.pop(0)
+            if (cur_type, cur_id) in visited or depth > max_depth:
+                continue
+            visited.add((cur_type, cur_id))
+            rows = conn.execute(
+                """
+                SELECT dst_type, dst_id, relation
+                FROM provenance_edges
+                WHERE src_type = ? AND src_id = ?
+                """,
+                (cur_type, cur_id),
+            ).fetchall()
+            for r in rows:
+                path.append(
+                    {
+                        "from": {"type": cur_type, "id": cur_id},
+                        "to": {"type": r["dst_type"], "id": r["dst_id"]},
+                        "relation": r["relation"],
+                        "depth": depth,
+                    }
+                )
+                frontier.append((r["dst_type"], r["dst_id"], depth + 1))
+    return path
+
+
+def mark_transformation_reverted(transformation_id: str, reverted_by: str) -> None:
+    """Marca uma transformação como revertida no diário (não a apaga — §36)."""
+    with connect() as conn:
+        conn.execute(
+            "UPDATE transformations SET reverted_by = ? WHERE transformation_id = ?",
+            (reverted_by, transformation_id),
+        )
+
+
 def _dumps(obj: dict) -> str:
     import json
 

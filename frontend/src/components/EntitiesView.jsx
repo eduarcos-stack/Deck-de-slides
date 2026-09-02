@@ -93,13 +93,23 @@ function ImpactPanel({ datasetId, pair, onDecided }) {
     api.entityImpact(datasetId, pair.entity_a, pair.entity_b).then(setImpact).catch((e) => setErr(e.message));
   }, [datasetId, pair]);
 
+  const [merged, setMerged] = useState(null);
+
   async function decide(decision) {
     if (!operator) { setErr("Informe o operador que decide (P9)."); return; }
     setErr(null);
     try {
       const r = await api.entityDecide(datasetId, pair.entity_a, pair.entity_b, decision, operator, "decidido via UI");
+      setMerged(r.merged_entity_id || null);
       setMsg(`Decisão registrada: ${r.decision}${r.merged_entity_id ? " (entidade fundida " + r.merged_entity_id + ")" : ""}. Reversível e auditável.`);
       onDecided();
+    } catch (e) { setErr(e.message); }
+  }
+
+  async function genFinding() {
+    try {
+      const f = await api.entityFinding(datasetId, merged);
+      setMsg(`Achado gerado: "${f.statement}". Ele depende desta entidade — se você reverter o merge na aba AUDIT, ele vira STALE (§59).`);
     } catch (e) { setErr(e.message); }
   }
 
@@ -146,6 +156,13 @@ function ImpactPanel({ datasetId, pair, onDecided }) {
             <button className="primary" style={{ margin: 0, background: "var(--ok)", color: "#08260f" }}
               onClick={() => decide("MATCH")}>Aprovar fusão (MATCH)</button>
           </div>
+
+          {merged && (
+            <div style={{ marginTop: 12 }}>
+              <button className="primary" style={{ margin: 0, background: "var(--panel-2)" }}
+                onClick={genFinding}>Gerar achado desta entidade fundida (§59)</button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -115,6 +115,7 @@ CREATE TABLE IF NOT EXISTS findings (
     evidence        TEXT NOT NULL DEFAULT '{}',
     confidence      TEXT NOT NULL DEFAULT 'low',
     robust          INTEGER,                       -- NULL até auditar estabilidade
+    depends_on      TEXT NOT NULL DEFAULT '[]',    -- dependências explícitas (§58)
     created_at      TEXT NOT NULL
 );
 
@@ -131,11 +132,23 @@ CREATE TABLE IF NOT EXISTS provenance_edges (
 """
 
 
+# Migrações leves: colunas adicionadas após a primeira versão do schema.
+# Mantém bancos locais pré-existentes compatíveis sem apagar dados.
+_MIGRATIONS = [
+    ("findings", "depends_on", "TEXT NOT NULL DEFAULT '[]'"),
+    ("transformations", "reverted_by", "TEXT"),
+]
+
+
 def init_db() -> None:
-    """Cria o esquema local se necessário."""
+    """Cria o esquema local se necessário e aplica migrações idempotentes."""
     config.ensure_dirs()
     with connect() as conn:
         conn.executescript(_SCHEMA)
+        for table, column, decl in _MIGRATIONS:
+            cols = {r["name"] for r in conn.execute(f"PRAGMA table_info({table})")}
+            if column not in cols:
+                conn.execute(f"ALTER TABLE {table} ADD COLUMN {column} {decl}")
 
 
 @contextmanager

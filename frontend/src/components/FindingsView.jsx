@@ -45,7 +45,7 @@ export default function FindingsView({ datasetId, datasets, onPick }) {
           <div className="card" key={f.finding_id}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
               <div>
-                <span className="badge warn">{f.status}</span>{" "}
+                <span className={`badge ${f.status.startsWith("STALE") ? "danger" : "warn"}`}>{f.status}</span>{" "}
                 {f.robust === false && <span className="badge danger">NÃO ROBUSTO</span>}
                 {f.robust === true && <span className="badge" style={{ background: "rgba(123,216,143,0.15)", color: "var(--ok)" }}>ROBUSTO</span>}
                 <div style={{ marginTop: 8, fontSize: 15 }}>{f.statement}</div>

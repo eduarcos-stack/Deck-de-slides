@@ -157,19 +157,66 @@ def correlation_guardrail(r_value: float | None = None) -> dict:
 # --------------------------------------------------------------------------- #
 # Finding Registry
 # --------------------------------------------------------------------------- #
-def _persist_finding(dataset_id, finding_id, ftype, statement, method, evidence, confidence):
+def _persist_finding(dataset_id, finding_id, ftype, statement, method, evidence,
+                     confidence, depends_on=None):
     now = datetime.now(timezone.utc).isoformat()
+    depends_on = depends_on or []
     with connect() as conn:
         conn.execute(
             """INSERT OR REPLACE INTO findings
                (finding_id, dataset_id, type, statement, status, method, evidence,
-                confidence, robust, created_at)
-               VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                confidence, robust, depends_on, created_at)
+               VALUES (?,?,?,?,?,?,?,?,?,?,?)""",
             (finding_id, dataset_id, ftype, statement, "EXPLORATORY_FINDING",
              json.dumps(method, ensure_ascii=False), json.dumps(evidence, ensure_ascii=False),
-             confidence, None, now),
+             confidence, None, json.dumps(depends_on, ensure_ascii=False), now),
         )
     provenance.add_edge("DATASET", dataset_id, "FINDING", finding_id, "produced")
+    # Arestas de dependência explícita (§58): quem sustenta o achado.
+    for dep in depends_on:
+        provenance.add_edge(dep["type"], dep["id"], "FINDING", finding_id, "supports")
+
+
+def entity_aggregate_finding(dataset_id: str, entity_id: str) -> dict:
+    """Cria um achado que DEPENDE de uma entidade (§59, exemplo F17/E7).
+
+    Agrega os registros vinculados à entidade. Se a entidade for depois
+    revertida (rollback do merge), este achado é invalidado automaticamente.
+    """
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT record_id FROM entity_membership WHERE entity_id = ?", (entity_id,)
+        ).fetchall()
+        rids = [r["record_id"] for r in rows]
+        payloads = []
+        for rid in rids:
+            pr = conn.execute(
+                "SELECT original_payload FROM raw_records WHERE record_id = ?", (rid,)
+            ).fetchone()
+            if pr:
+                payloads.append(json.loads(pr["original_payload"]))
+    if not payloads:
+        raise KeyError("entidade sem registros vinculados")
+
+    total = 0.0
+    for p in payloads:
+        try:
+            total += float(str(p.get("amount")).replace(",", "."))
+        except (ValueError, TypeError, AttributeError):
+            pass
+    events = len({p.get("event_id") for p in payloads})
+    companies = sorted({p.get("company") for p in payloads if p.get("company")})
+
+    finding_id = "find_" + uuid.uuid4().hex[:10]
+    statement = (f"Entidade fundida concentra {events} eventos, {len(companies)} "
+                 f"empresa(s) e R$ {round(total, 2)}.")
+    _persist_finding(
+        dataset_id, finding_id, "ENTITY_AGGREGATE", statement,
+        method={"entity_id": entity_id}, evidence={"events": events,
+        "companies": companies, "total_amount": round(total, 2), "records": rids},
+        confidence="low", depends_on=[{"type": "ENTITY", "id": entity_id}],
+    )
+    return {"finding_id": finding_id, "statement": statement, "depends_on_entity": entity_id}
 
 
 def list_findings(dataset_id: str) -> list[dict]:
@@ -182,6 +229,7 @@ def list_findings(dataset_id: str) -> list[dict]:
         d = dict(r)
         d["method"] = json.loads(d["method"])
         d["evidence"] = json.loads(d["evidence"])
+        d["depends_on"] = json.loads(d.get("depends_on") or "[]")
         d["robust"] = None if d["robust"] is None else bool(d["robust"])
         out.append(d)
     return out

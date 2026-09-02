@@ -25,6 +25,7 @@ from app.modules import (
     ingestion,
     normalization,
     profiling,
+    rollback,
     rules,
     temporal,
 )
@@ -405,3 +406,50 @@ class SCSBody(BaseModel):
 def scs(body: SCSBody) -> dict:
     """Modo SUPPORT × CHALLENGE × SYNTHESIS (§42)."""
     return adversarial.support_challenge_synthesis(body.hypothesis, body.support, body.challenge)
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 5 — Rollback + Invalidação Automática (§57-59)
+# --------------------------------------------------------------------------- #
+class RollbackBody(BaseModel):
+    actor: str
+    justification: str = ""
+
+
+@app.post("/datasets/{dataset_id}/entities/{entity_id}/finding")
+def entity_finding(dataset_id: str, entity_id: str) -> dict:
+    """Cria um achado que depende de uma entidade fundida (exemplo §59)."""
+    _require_dataset(dataset_id)
+    try:
+        return eda.entity_aggregate_finding(dataset_id, entity_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/reversible")
+def reversible(dataset_id: str) -> dict:
+    """Transformações reversíveis do dataset (§57)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "transformations": rollback.list_reversible(dataset_id)}
+
+
+@app.get("/datasets/{dataset_id}/transformations/{transformation_id}/dependencies")
+def dependencies(dataset_id: str, transformation_id: str) -> dict:
+    """Dependency Graph de uma transformação (§58)."""
+    _require_dataset(dataset_id)
+    return rollback.dependency_graph(dataset_id, transformation_id)
+
+
+@app.post("/datasets/{dataset_id}/transformations/{transformation_id}/rollback")
+def do_rollback(dataset_id: str, transformation_id: str, body: RollbackBody) -> dict:
+    """Reverte a transformação e invalida dependências (§57-59, P10, P9)."""
+    _require_dataset(dataset_id)
+    if not body.actor.strip():
+        raise HTTPException(422, "Rollback exige identificação do operador (P9).")
+    try:
+        return rollback.rollback(dataset_id, transformation_id,
+                                 actor=body.actor, justification=body.justification)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc

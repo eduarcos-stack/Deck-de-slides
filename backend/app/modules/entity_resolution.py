@@ -289,6 +289,9 @@ def decide(
     if decision == "MATCH":
         merged_entity_id = "ent_merge_" + uuid.uuid4().hex[:8]
         members = ent_index[entity_a]["record_ids"] + ent_index[entity_b]["record_ids"]
+        # Aresta que permite ao rollback localizar a entidade produzida (§58).
+        provenance.add_edge("TRANSFORMATION", transformation_id, "ENTITY",
+                            merged_entity_id, "produced")
         with connect() as conn:
             conn.execute(
                 "INSERT INTO entities (entity_id, entity_type, status, created_at) VALUES (?,?,?,?)",
