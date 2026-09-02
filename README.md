@@ -9,9 +9,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 
 ---
 
-## Estado atual — Milestones 1 e 2
-
-Capacidades entregues:
+## Estado atual — MVP completo (7/7 capacidades)
 
 | # | Capacidade | Blueprint | Status |
 |---|---|---|---|
@@ -20,8 +18,8 @@ Capacidades entregues:
 | 3 | Profiling (estrutura, missingness, formatos, chaves, duplicidade) | §12–13 | ✅ M1 |
 | 4 | Normalização versionada (preview + aprovação, regras com ID+versão) | §16–17, §52 | ✅ M2 |
 | 5 | Deduplicação por unidade de evento | §20–21 | ✅ M2 |
-| 6 | Entity Resolution assistida + Impact Analysis | §22–27 | ⏳ M3 |
-| 7 | Lineage / Provenance ("Como chegamos aqui?") | §34–35, §45 | ⏳ M3 |
+| 6 | Entity Resolution assistida + Impact Analysis | §22–27 | ✅ M3 |
+| 7 | Lineage / Provenance ("Como chegamos aqui?") | §34–35, §45 | ✅ M3 |
 
 O esqueleto de governança (Diário de Transformação §35, Provenance Graph §34,
 status epistemológicos §9) já está no código, pronto para as próximas capacidades.
@@ -32,13 +30,14 @@ status epistemológicos §9) já está no código, pronto para as próximas capa
 
 ```
 Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
-  CASE · DATA · QUALITY              ├── modules/ingestion       (§10)
-  TRANSFORM                          ├── modules/raw_vault       (§11, P1)
-                                     ├── modules/profiling       (§12)
-                                     ├── modules/rules           (§52)
-                                     ├── modules/normalization   (§16-17)
-                                     ├── modules/deduplication   (§20)
-                                     └── governance/             (§34, §35)
+  CASE · DATA · QUALITY              ├── modules/ingestion         (§10)
+  TRANSFORM · ENTITIES · AUDIT       ├── modules/raw_vault         (§11, P1)
+                                     ├── modules/profiling         (§12)
+                                     ├── modules/rules             (§52)
+                                     ├── modules/normalization     (§16-17)
+                                     ├── modules/deduplication     (§20)
+                                     ├── modules/entity_resolution (§22-27)
+                                     └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)
 ```

@@ -81,6 +81,28 @@ CREATE TABLE IF NOT EXISTS derived_fields (
     FOREIGN KEY (transformation_id) REFERENCES transformations(transformation_id)
 );
 
+-- Entidade e vínculo (§55). Uma entidade é uma HIPÓTESE de que registros
+-- representam a mesma pessoa/empresa/dispositivo (P4 — similaridade ≠ identidade).
+CREATE TABLE IF NOT EXISTS entities (
+    entity_id    TEXT PRIMARY KEY,
+    entity_type  TEXT NOT NULL,
+    status       TEXT NOT NULL DEFAULT 'CANDIDATE',
+    created_at   TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS entity_membership (
+    membership_id  TEXT PRIMARY KEY,
+    record_id      TEXT NOT NULL,
+    entity_id      TEXT NOT NULL,
+    match_score    REAL,
+    decision       TEXT NOT NULL,        -- MATCH | POSSIBLE | NON_MATCH
+    decision_actor TEXT NOT NULL,
+    evidence       TEXT NOT NULL DEFAULT '{}',
+    created_at     TEXT NOT NULL,
+    FOREIGN KEY (record_id) REFERENCES raw_records(record_id),
+    FOREIGN KEY (entity_id) REFERENCES entities(entity_id)
+);
+
 -- Provenance Graph (§34): arestas dirigidas entre objetos do sistema.
 CREATE TABLE IF NOT EXISTS provenance_edges (
     edge_id     INTEGER PRIMARY KEY AUTOINCREMENT,

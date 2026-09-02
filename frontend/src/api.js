@@ -77,3 +77,43 @@ export async function listTransformations(datasetId) {
   if (!r.ok) throw new Error("Falha ao obter diário");
   return r.json();
 }
+
+// --- Milestone 3 — Entity Resolution / Impact / Audit ---
+export async function getEntities(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/entities`);
+  if (!r.ok) throw new Error("Falha ao resolver entidades");
+  return r.json();
+}
+
+export async function entityImpact(datasetId, entityA, entityB) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/entities/impact`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ entity_a: entityA, entity_b: entityB }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no impact analysis");
+  return r.json();
+}
+
+export async function entityDecide(datasetId, entityA, entityB, decision, approvedBy, justification) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/entities/decide`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ entity_a: entityA, entity_b: entityB, decision, approved_by: approvedBy, justification }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha ao decidir");
+  return r.json();
+}
+
+export async function getProvenance(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/provenance`);
+  if (!r.ok) throw new Error("Falha ao obter provenance");
+  return r.json();
+}
+
+export async function traceObject(objectType, objectId) {
+  const q = new URLSearchParams({ object_type: objectType, object_id: objectId });
+  const r = await fetch(`${BASE}/provenance/trace?${q}`);
+  if (!r.ok) throw new Error("Falha ao rastrear");
+  return r.json();
+}

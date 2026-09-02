@@ -16,7 +16,15 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from app.core.db import connect, init_db
-from app.modules import deduplication, ingestion, normalization, profiling, rules
+from app.governance import provenance
+from app.modules import (
+    deduplication,
+    entity_resolution,
+    ingestion,
+    normalization,
+    profiling,
+    rules,
+)
 
 app = FastAPI(
     title="TRACE-LM API",
@@ -223,3 +231,86 @@ def _require_dataset(dataset_id: str) -> None:
         ).fetchone()
     if not exists:
         raise HTTPException(404, "Dataset não encontrado.")
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 3 — Entity Resolution, Impact Analysis e Auditoria (§22-27, §34, §45)
+# --------------------------------------------------------------------------- #
+class ImpactBody(BaseModel):
+    entity_a: str
+    entity_b: str
+
+
+class DecideBody(BaseModel):
+    entity_a: str
+    entity_b: str
+    decision: str  # MATCH | NON_MATCH | POSSIBLE
+    approved_by: str
+    justification: str = ""
+
+
+@app.get("/datasets/{dataset_id}/entities")
+def get_entities(dataset_id: str) -> dict:
+    """Capacidade 6 — Entity Resolution (§22). Entidades candidatas + pares."""
+    _require_dataset(dataset_id)
+    return entity_resolution.resolve(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/entities/compare")
+def compare_records(dataset_id: str, a: str, b: str) -> dict:
+    """Matriz de comparação entre dois registros (§24)."""
+    _require_dataset(dataset_id)
+    try:
+        return entity_resolution.compare_records(dataset_id, a, b)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/entities/impact")
+def entity_impact(dataset_id: str, body: ImpactBody) -> dict:
+    """Impact Analysis before/after de uma fusão proposta (§26-27)."""
+    _require_dataset(dataset_id)
+    try:
+        return entity_resolution.impact_analysis(dataset_id, body.entity_a, body.entity_b)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/entities/decide")
+def entity_decide(dataset_id: str, body: DecideBody) -> dict:
+    """Decisão humana sobre a fusão (§43 nível 3, P9). Auditável e reversível."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Decisão de identidade exige aprovação humana (P9).")
+    try:
+        return entity_resolution.decide(
+            dataset_id, body.entity_a, body.entity_b, body.decision,
+            approved_by=body.approved_by, justification=body.justification,
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/provenance")
+def get_provenance(dataset_id: str) -> dict:
+    """Provenance Graph do dataset (§34): arestas + diário de transformação."""
+    _require_dataset(dataset_id)
+    with connect() as conn:
+        edges = conn.execute(
+            """SELECT src_type, src_id, dst_type, dst_id, relation, created_at
+               FROM provenance_edges ORDER BY edge_id"""
+        ).fetchall()
+    return {
+        "dataset_id": dataset_id,
+        "edges": [dict(e) for e in edges],
+        "transformations": normalization.list_transformations(dataset_id),
+    }
+
+
+@app.get("/provenance/trace")
+def trace(object_type: str, object_id: str) -> dict:
+    """Botão "Como chegamos aqui?" (§45): caminho reverso até a fonte."""
+    return {
+        "object": {"type": object_type, "id": object_id},
+        "path": provenance.trace_back(object_type, object_id),
+    }
