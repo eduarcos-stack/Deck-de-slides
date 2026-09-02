@@ -122,12 +122,17 @@ def build() -> list[dict]:
 
     # --- Armadilhas controladas ---------------------------------------------
     gt_technical_dupes = []
-    # 4 duplicatas TÉCNICAS: reimporta o mesmo event_id de Carlos A (§20).
+    # 4 duplicatas TÉCNICAS: reimportação do MESMO evento (§20). Cópia integral
+    # do registro de origem, divergindo apenas em campo não-core (notes),
+    # como ocorre num reimport de lote — diferente de divergência real.
     for i in range(4):
+        rid += 1
         src = rows[i]
-        dup = add(CARLOS_A, src["event_id"], timestamp=src["timestamp"],
-                  amount=src["amount"], account=src["account"],
-                  notes="reimport lote 2")
+        dup = dict(src)
+        dup["record_id"] = f"R{rid:03d}"
+        dup["notes"] = "reimport lote 2"
+        dup["source_system"] = "Nexus"
+        rows.append(dup)
         gt_technical_dupes.append((src["record_id"], dup["record_id"]))
 
     # 3 eventos repetidos LEGÍTIMOS: mesma pessoa/dia, valores distintos (§20).

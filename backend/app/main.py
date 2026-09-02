@@ -13,8 +13,10 @@ from pathlib import Path
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 
+from pydantic import BaseModel
+
 from app.core.db import connect, init_db
-from app.modules import ingestion, profiling
+from app.modules import deduplication, ingestion, normalization, profiling, rules
 
 app = FastAPI(
     title="TRACE-LM API",
@@ -128,3 +130,96 @@ def get_records(dataset_id: str, limit: int = 100, offset: int = 0) -> dict:
             for r in rows
         ],
     }
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 2 — Transformação (§16-17, §20, §35, §43)
+# --------------------------------------------------------------------------- #
+class ApplyBody(BaseModel):
+    field: str
+    rule_id: str
+    approved_by: str
+    justification: str = ""
+
+
+class DedupApplyBody(BaseModel):
+    event_key: str
+    approved_by: str
+    justification: str = ""
+
+
+@app.get("/rules")
+def get_rules() -> dict:
+    """Motor de Regras (§52): regras determinísticas com ID + versão."""
+    return {"rules": rules.list_rules()}
+
+
+@app.get("/datasets/{dataset_id}/normalize/preview")
+def normalize_preview(dataset_id: str, field: str, rule_id: str) -> dict:
+    """Capacidade 4 — Transformation Preview (§17). Não grava nada."""
+    _require_dataset(dataset_id)
+    try:
+        return normalization.preview(dataset_id, field, rule_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/normalize/apply")
+def normalize_apply(dataset_id: str, body: ApplyBody) -> dict:
+    """Capacidade 4 — Apply após aprovação humana (§43, P9)."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Aprovação humana exige identificação do operador (P9).")
+    try:
+        return normalization.apply(
+            dataset_id,
+            body.field,
+            body.rule_id,
+            approved_by=body.approved_by,
+            justification=body.justification,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/dedup")
+def dedup_analyze(dataset_id: str, event_key: str) -> dict:
+    """Capacidade 5 — Deduplicação por unidade de evento (§20). Somente-leitura."""
+    _require_dataset(dataset_id)
+    try:
+        return deduplication.analyze(dataset_id, event_key)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/dedup/canonicalize")
+def dedup_canonicalize(dataset_id: str, body: DedupApplyBody) -> dict:
+    """Capacidade 5 — Consolidação após aprovação (§43). Não apaga o raw (P1)."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Consolidação exige aprovação humana (P9).")
+    try:
+        return deduplication.canonicalize(
+            dataset_id,
+            body.event_key,
+            approved_by=body.approved_by,
+            justification=body.justification,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/transformations")
+def get_transformations(dataset_id: str) -> dict:
+    """Diário de Transformação do dataset (§35)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "transformations": normalization.list_transformations(dataset_id)}
+
+
+def _require_dataset(dataset_id: str) -> None:
+    with connect() as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM datasets WHERE dataset_id = ?", (dataset_id,)
+        ).fetchone()
+    if not exists:
+        raise HTTPException(404, "Dataset não encontrado.")

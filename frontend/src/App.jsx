@@ -3,12 +3,13 @@ import * as api from "./api.js";
 import CaseView from "./components/CaseView.jsx";
 import DataView from "./components/DataView.jsx";
 import QualityView from "./components/QualityView.jsx";
+import TransformView from "./components/TransformView.jsx";
 
 const TABS = [
   { id: "case", label: "CASE", enabled: true },
   { id: "data", label: "DATA", enabled: true },
   { id: "quality", label: "QUALITY", enabled: true },
-  { id: "transform", label: "TRANSFORM", enabled: false },
+  { id: "transform", label: "TRANSFORM", enabled: true },
   { id: "entities", label: "ENTITIES", enabled: false },
   { id: "audit", label: "AUDIT", enabled: false },
 ];
@@ -77,6 +78,9 @@ export default function App() {
         )}
         {tab === "quality" && (
           <QualityView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
+        )}
+        {tab === "transform" && (
+          <TransformView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
         )}
       </main>
     </div>

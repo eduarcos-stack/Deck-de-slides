@@ -9,17 +9,17 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 
 ---
 
-## Estado atual — Milestone 1 (fundação)
+## Estado atual — Milestones 1 e 2
 
 Capacidades entregues:
 
 | # | Capacidade | Blueprint | Status |
 |---|---|---|---|
-| 1 | Ingestão (CSV/TSV/JSON/JSONL/XLSX) | §10 | ✅ |
-| 2 | Raw preservation (vault imutável, hash, read-only) | §11, P1 | ✅ |
-| 3 | Profiling (estrutura, missingness, formatos, chaves, duplicidade) | §12–13 | ✅ |
-| 4 | Normalização versionada | §16–17 | ⏳ M2 |
-| 5 | Deduplicação | §20 | ⏳ M2 |
+| 1 | Ingestão (CSV/TSV/JSON/JSONL/XLSX) | §10 | ✅ M1 |
+| 2 | Raw preservation (vault imutável, hash, read-only) | §11, P1 | ✅ M1 |
+| 3 | Profiling (estrutura, missingness, formatos, chaves, duplicidade) | §12–13 | ✅ M1 |
+| 4 | Normalização versionada (preview + aprovação, regras com ID+versão) | §16–17, §52 | ✅ M2 |
+| 5 | Deduplicação por unidade de evento | §20–21 | ✅ M2 |
 | 6 | Entity Resolution assistida + Impact Analysis | §22–27 | ⏳ M3 |
 | 7 | Lineage / Provenance ("Como chegamos aqui?") | §34–35, §45 | ⏳ M3 |
 
@@ -32,10 +32,13 @@ status epistemológicos §9) já está no código, pronto para as próximas capa
 
 ```
 Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
-  CASE · DATA · QUALITY              ├── modules/ingestion   (§10)
-                                     ├── modules/raw_vault   (§11, P1)
-                                     ├── modules/profiling   (§12)
-                                     └── governance/         (§34, §35)
+  CASE · DATA · QUALITY              ├── modules/ingestion       (§10)
+  TRANSFORM                          ├── modules/raw_vault       (§11, P1)
+                                     ├── modules/profiling       (§12)
+                                     ├── modules/rules           (§52)
+                                     ├── modules/normalization   (§16-17)
+                                     ├── modules/deduplication   (§20)
+                                     └── governance/             (§34, §35)
                                           │
                                    SQLite + Raw Vault (disco local)
 ```

@@ -30,3 +30,50 @@ export async function getRecords(datasetId, limit = 50) {
   if (!r.ok) throw new Error("Falha ao obter registros");
   return r.json();
 }
+
+// --- Milestone 2 — Transformação ---
+export async function listRules() {
+  const r = await fetch(`${BASE}/rules`);
+  if (!r.ok) throw new Error("Falha ao listar regras");
+  return r.json();
+}
+
+export async function normalizePreview(datasetId, field, ruleId) {
+  const q = new URLSearchParams({ field, rule_id: ruleId });
+  const r = await fetch(`${BASE}/datasets/${datasetId}/normalize/preview?${q}`);
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no preview");
+  return r.json();
+}
+
+export async function normalizeApply(datasetId, field, ruleId, approvedBy, justification) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/normalize/apply`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ field, rule_id: ruleId, approved_by: approvedBy, justification }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha ao aplicar");
+  return r.json();
+}
+
+export async function dedupAnalyze(datasetId, eventKey) {
+  const q = new URLSearchParams({ event_key: eventKey });
+  const r = await fetch(`${BASE}/datasets/${datasetId}/dedup?${q}`);
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha na análise");
+  return r.json();
+}
+
+export async function dedupCanonicalize(datasetId, eventKey, approvedBy, justification) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/dedup/canonicalize`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ event_key: eventKey, approved_by: approvedBy, justification }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha ao consolidar");
+  return r.json();
+}
+
+export async function listTransformations(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/transformations`);
+  if (!r.ok) throw new Error("Falha ao obter diário");
+  return r.json();
+}
