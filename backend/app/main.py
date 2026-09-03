@@ -10,16 +10,18 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from fastapi import FastAPI, Form, HTTPException, UploadFile
+from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import Response
 
 from pydantic import BaseModel
 
+from app.core.authmw import SecurityMiddleware
 from app.core.db import connect, init_db
 from app.governance import provenance
 from app.modules import (
     adversarial,
+    auth,
     deduplication,
     eda,
     entity_resolution,
@@ -41,6 +43,8 @@ app = FastAPI(
     ),
 )
 
+# Segurança (§48): autenticação, RBAC, segregação por caso e audit log.
+app.add_middleware(SecurityMiddleware)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],  # local-first: front e back na mesma máquina/LAN
@@ -51,11 +55,13 @@ app.add_middleware(
 # Garante o schema local assim que a aplicação é carregada (não depende do
 # evento de startup, que não dispara em TestClient sem context manager).
 init_db()
+auth.seed_users()
 
 
 @app.on_event("startup")
 def _startup() -> None:
     init_db()
+    auth.seed_users()
 
 
 @app.get("/health")
@@ -63,8 +69,91 @@ def health() -> dict:
     return {"status": "ok", "principle": "provenance-first"}
 
 
+# --------------------------------------------------------------------------- #
+# Milestone 7 — Autenticação, RBAC e MFA (§48)
+# --------------------------------------------------------------------------- #
+class LoginBody(BaseModel):
+    username: str
+    password: str
+
+
+class MfaLoginBody(BaseModel):
+    mfa_token: str
+    code: str
+
+
+class MfaCodeBody(BaseModel):
+    code: str
+
+
+class NewUserBody(BaseModel):
+    username: str
+    password: str
+    role: str
+
+
+@app.post("/auth/login")
+def auth_login(body: LoginBody) -> dict:
+    try:
+        return auth.login(body.username, body.password)
+    except PermissionError as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+@app.post("/auth/login/mfa")
+def auth_login_mfa(body: MfaLoginBody) -> dict:
+    try:
+        return auth.login_mfa(body.mfa_token, body.code)
+    except (PermissionError,) as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+@app.get("/auth/me")
+def auth_me(request: Request) -> dict:
+    u = request.state.user
+    return {"user_id": u["user_id"], "username": u["username"], "role": u["role"],
+            "mfa_enabled": bool(u["mfa_enabled"])}
+
+
+@app.post("/auth/mfa/setup")
+def auth_mfa_setup(request: Request) -> dict:
+    return auth.mfa_setup(request.state.user["user_id"])
+
+
+@app.post("/auth/mfa/enable")
+def auth_mfa_enable(request: Request, body: MfaCodeBody) -> dict:
+    try:
+        return auth.mfa_enable(request.state.user["user_id"], body.code)
+    except PermissionError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/auth/users")
+def auth_list_users() -> dict:
+    return {"users": auth.list_users()}
+
+
+@app.post("/auth/users")
+def auth_create_user(body: NewUserBody) -> dict:
+    try:
+        return auth.create_user(body.username, body.password, body.role)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/auth/access-log")
+def auth_access_log(limit: int = 100) -> dict:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT actor, role, method, path, status, outcome, at FROM access_log "
+            "ORDER BY log_id DESC LIMIT ?", (limit,)
+        ).fetchall()
+    return {"entries": [dict(r) for r in rows]}
+
+
 @app.post("/ingest")
 async def ingest_file(
+    request: Request,
     file: UploadFile,
     operator: str = Form(...),
     case_id: str = Form(...),
@@ -85,6 +174,10 @@ async def ingest_file(
         )
     except ingestion.IngestionError as exc:
         raise HTTPException(422, str(exc)) from exc
+    # Segregação por caso (§48): o criador ganha acesso ao caso ingerido.
+    user = getattr(request.state, "user", None)
+    if user:
+        auth.grant_case_access(user["user_id"], case_id)
     return {
         "message": f"{result['row_count']} registros recebidos. "
         "Nenhuma transformação realizada.",

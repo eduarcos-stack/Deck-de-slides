@@ -119,6 +119,37 @@ CREATE TABLE IF NOT EXISTS findings (
     created_at      TEXT NOT NULL
 );
 
+-- Segurança (§48): usuários, RBAC, segregação por caso e log de acesso.
+CREATE TABLE IF NOT EXISTS users (
+    user_id        TEXT PRIMARY KEY,
+    username       TEXT NOT NULL UNIQUE,
+    password_hash  TEXT NOT NULL,
+    role           TEXT NOT NULL,            -- admin | investigator | viewer
+    mfa_secret     TEXT,
+    mfa_enabled    INTEGER NOT NULL DEFAULT 0,
+    disabled       INTEGER NOT NULL DEFAULT 0,
+    created_at     TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS case_access (
+    user_id   TEXT NOT NULL,
+    case_id   TEXT NOT NULL,
+    PRIMARY KEY (user_id, case_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- Log de acesso append-only (§48). Só recebe INSERT.
+CREATE TABLE IF NOT EXISTS access_log (
+    log_id     INTEGER PRIMARY KEY AUTOINCREMENT,
+    actor      TEXT,
+    role       TEXT,
+    method     TEXT NOT NULL,
+    path       TEXT NOT NULL,
+    status     INTEGER NOT NULL,
+    outcome    TEXT NOT NULL,
+    at         TEXT NOT NULL
+);
+
 -- Provenance Graph (§34): arestas dirigidas entre objetos do sistema.
 CREATE TABLE IF NOT EXISTS provenance_edges (
     edge_id     INTEGER PRIMARY KEY AUTOINCREMENT,

@@ -32,6 +32,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Adversarial Auditor ("como isso poderia estar errado?", SUPPORT×CHALLENGE) | §41–42 | ✅ M4 |
 | Rollback + Dependency Graph + Invalidação Automática | §57–59, P10 | ✅ M5 |
 | Pacote de Entregáveis (16 itens, relatório, ZIP, Provenance Completeness) | §60–61, §63 | ✅ M6 |
+| Segurança — login obrigatório, RBAC, MFA/TOTP, segregação por caso, audit log | §48 | ✅ M7 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -63,6 +64,8 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/adversarial       (§41-42)
                                      ├── modules/rollback          (§57-59)
                                      ├── modules/export            (§60-61, §63)
+                                     ├── modules/auth              (§48 — RBAC/MFA)
+                                     ├── core/security · authmw    (§48)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)
@@ -72,6 +75,28 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
 dados de caso vivem apenas em `backend/data/` (não versionado).
 
 ---
+
+## Segurança (§48)
+
+Login é obrigatório em todas as rotas (exceto `/health` e `/auth/login*`). Papéis:
+**admin** (acesso total + gestão de usuários), **investigator** (ingere/transforma/
+decide/reverte/exporta nos seus casos) e **viewer** (somente leitura). Há segregação
+por caso, MFA opcional por TOTP, session timeout e log de acesso append-only.
+
+> ⚠️ **Credenciais padrão são apenas para o demo local.** Na primeira execução o
+> sistema semeia `admin`, `arcos` (investigator) e `promotor` (viewer) com senhas
+> padrão. **Antes de qualquer uso real, defina senhas por variável de ambiente e
+> ative o MFA.**
+
+Variáveis de ambiente relevantes:
+
+```bash
+TRACELM_SECRET=<segredo-forte>          # chave de assinatura dos tokens (senão gera local)
+TRACELM_ADMIN_PASSWORD=<senha>          # senha do admin no seed
+TRACELM_INVESTIGATOR_PASSWORD=<senha>
+TRACELM_VIEWER_PASSWORD=<senha>
+TRACELM_SESSION_TTL=28800               # timeout de sessão em segundos (default 8h)
+```
 
 ## Como executar
 

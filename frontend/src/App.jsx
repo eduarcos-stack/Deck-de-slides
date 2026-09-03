@@ -9,6 +9,7 @@ import ExploreView from "./components/ExploreView.jsx";
 import FindingsView from "./components/FindingsView.jsx";
 import AuditView from "./components/AuditView.jsx";
 import ExportView from "./components/ExportView.jsx";
+import Login from "./components/Login.jsx";
 
 const TABS = [
   { id: "case", label: "CASE", enabled: true },
@@ -27,6 +28,18 @@ export default function App() {
   const [caseId, setCaseId] = useState("CASE-001");
   const [datasets, setDatasets] = useState([]);
   const [activeDataset, setActiveDataset] = useState(null);
+  const [user, setUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  useEffect(() => {
+    if (!api.getToken()) { setAuthChecked(true); return; }
+    api.getMe().then(setUser).catch(() => api.clearToken()).finally(() => setAuthChecked(true));
+  }, []);
+
+  function logout() {
+    api.clearToken();
+    setUser(null);
+  }
 
   async function refreshDatasets() {
     try {
@@ -41,9 +54,14 @@ export default function App() {
   }
 
   useEffect(() => {
+    if (!user) return;
     refreshDatasets();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [caseId]);
+  }, [caseId, user]);
+
+  // Todos os hooks acima; só então decidimos o que renderizar.
+  if (!authChecked) return null;
+  if (!user) return <Login onLogged={setUser} />;
 
   return (
     <div className="app">
@@ -51,6 +69,12 @@ export default function App() {
         <div className="brand">
           TRACE-LM
           <small>provenance-first · local</small>
+        </div>
+        <div style={{ margin: "14px 0", fontSize: 12, color: "var(--muted)" }}>
+          <div><b style={{ color: "var(--text)" }}>{user.username}</b></div>
+          <div>papel: {user.role}{user.mfa_enabled ? " · MFA" : ""}</div>
+          <button className="primary" style={{ margin: "8px 0 0", padding: "4px 12px", background: "var(--panel-2)" }}
+            onClick={logout}>Sair</button>
         </div>
         <nav className="nav">
           {TABS.map((t) => (
