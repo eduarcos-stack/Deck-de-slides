@@ -34,6 +34,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Pacote de Entregáveis (16 itens, relatório, ZIP, Provenance Completeness) | §60–61, §63 | ✅ M6 |
 | Segurança — login obrigatório, RBAC, MFA/TOTP, segregação por caso, audit log | §48 | ✅ M7 |
 | Integridade da trilha — hash-chain + selo HMAC no Diário e no audit log | §36 | ✅ M8 |
+| LLM Orchestrator + RAG local (model-agnostic, prompt constitucional, papéis) | §37–40, §49–51 | ✅ M9 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -46,6 +47,26 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 > **Demonstração §36:** cada entrada do Diário e do log de acesso é encadeada por hash e
 > selada com HMAC. Adulterar, remover ou reordenar qualquer entrada (mesmo direto no SQLite)
 > é detectado por `GET /integrity/verify` — aba AUDIT → "Verificar integridade".
+>
+> **Demonstração §92 (aba ASSISTANT):** à pergunta "quantas transações Carlos realizou?",
+> o assistente responde como o TRACE-LM, não como um "chat com planilha": *N linhas nominais
+> → M eventos candidatos → ≥2 homônimos → atribuição a uma pessoa única não suportada*,
+> com guardrails e plano de ferramentas rastreável.
+
+## Camada de IA (§37–40, §49–51)
+
+O **LLM Orchestrator** interpreta, planeja, explica e coordena ferramentas — **mas não é
+motor de execução** (§4): quem calcula são os motores determinísticos. A arquitetura é
+**model-agnostic** (§50) — a composição da resposta passa por um `LLMProvider` plugável.
+
+> ⚠️ O provider **padrão é local e determinístico** (sem pesos de modelo, sem rede — §47).
+> É o esqueleto do §49 ("open-weight + RAG + tool calling + políticas") com um *seam* pronto
+> para plugar um modelo open-weight local, sem reescrever a plataforma. Não há LLM neural
+> embutido neste repositório; `TRACELM_LLM_PROVIDER` seleciona o provider.
+
+O **RAG local** (§51) recupera conhecimento de domínio (`backend/kb/*.md`) por TF-IDF em
+Python puro — sem embeddings externos. Ele fornece conhecimento de método, **não substitui
+os dados do caso**.
 
 O esqueleto de governança (Diário de Transformação §35, Provenance Graph §34,
 status epistemológicos §9) já está no código, pronto para as próximas capacidades.
@@ -71,6 +92,9 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/export            (§60-61, §63)
                                      ├── modules/auth              (§48 — RBAC/MFA)
                                      ├── core/security · authmw    (§48)
+                                     ├── core/integrity            (§36 — hash-chain)
+                                     ├── modules/rag               (§51 — RAG local)
+                                     ├── modules/orchestrator      (§37-40 — LLM)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

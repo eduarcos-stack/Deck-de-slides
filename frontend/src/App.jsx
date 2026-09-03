@@ -9,6 +9,7 @@ import ExploreView from "./components/ExploreView.jsx";
 import FindingsView from "./components/FindingsView.jsx";
 import AuditView from "./components/AuditView.jsx";
 import ExportView from "./components/ExportView.jsx";
+import AssistantView from "./components/AssistantView.jsx";
 import Login from "./components/Login.jsx";
 
 const TABS = [
@@ -21,6 +22,7 @@ const TABS = [
   { id: "findings", label: "FINDINGS", enabled: true },
   { id: "audit", label: "AUDIT", enabled: true },
   { id: "export", label: "EXPORT", enabled: true },
+  { id: "assistant", label: "ASSISTANT", enabled: true },
 ];
 
 export default function App() {
@@ -128,6 +130,9 @@ export default function App() {
         )}
         {tab === "export" && (
           <ExportView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
+        )}
+        {tab === "assistant" && (
+          <AssistantView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
         )}
       </main>
     </div>

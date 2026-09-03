@@ -119,6 +119,15 @@ CREATE TABLE IF NOT EXISTS findings (
     created_at      TEXT NOT NULL
 );
 
+-- RAG local (§51): base de conhecimento de domínio (não é dado do caso).
+CREATE TABLE IF NOT EXISTS rag_docs (
+    doc_id     TEXT PRIMARY KEY,
+    title      TEXT NOT NULL,
+    source     TEXT NOT NULL,
+    text       TEXT NOT NULL,
+    created_at TEXT NOT NULL
+);
+
 -- Segurança (§48): usuários, RBAC, segregação por caso e log de acesso.
 CREATE TABLE IF NOT EXISTS users (
     user_id        TEXT PRIMARY KEY,

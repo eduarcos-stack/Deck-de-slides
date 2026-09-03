@@ -67,6 +67,25 @@ export async function verifyIntegrity() {
   return r.json();
 }
 
+// --- Milestone 9 — Assistente (LLM Orchestrator) + RAG local ---
+export async function askAssistant(question, datasetId) {
+  const q = new URLSearchParams({ question });
+  if (datasetId) q.append("dataset_id", datasetId);
+  const r = await authFetch(`${BASE}/assistant/ask?${q}`);
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no assistente");
+  return r.json();
+}
+export async function systemPrompt() {
+  const r = await authFetch(`${BASE}/assistant/system-prompt`);
+  if (!r.ok) throw new Error("Falha ao obter prompt");
+  return r.json();
+}
+export async function kbDocs() {
+  const r = await authFetch(`${BASE}/kb/docs`);
+  if (!r.ok) throw new Error("Falha ao listar KB");
+  return r.json();
+}
+
 export async function ingest(file, operator, caseId) {
   const fd = new FormData();
   fd.append("file", file);

@@ -28,7 +28,9 @@ from app.modules import (
     export,
     ingestion,
     normalization,
+    orchestrator,
     profiling,
+    rag,
     rollback,
     rules,
     temporal,
@@ -56,12 +58,14 @@ app.add_middleware(
 # evento de startup, que não dispara em TestClient sem context manager).
 init_db()
 auth.seed_users()
+rag.seed_kb()
 
 
 @app.on_event("startup")
 def _startup() -> None:
     init_db()
     auth.seed_users()
+    rag.seed_kb()
 
 
 @app.get("/health")
@@ -149,6 +153,38 @@ def auth_access_log(limit: int = 100) -> dict:
             "ORDER BY log_id DESC LIMIT ?", (limit,)
         ).fetchall()
     return {"entries": [dict(r) for r in rows]}
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 9 — LLM Orchestrator + RAG local (§37-40, §49-51)
+# --------------------------------------------------------------------------- #
+@app.get("/assistant/system-prompt")
+def assistant_prompt() -> dict:
+    """System prompt constitucional do LLM (§39) e papéis lógicos (§40)."""
+    return {"system_prompt": orchestrator.CONSTITUTIONAL_PROMPT,
+            "logical_roles": orchestrator.LOGICAL_ROLES}
+
+
+@app.get("/assistant/ask")
+def assistant_ask(request: Request, question: str, dataset_id: str | None = None) -> dict:
+    """Interação em linguagem natural (§38). GET (idempotente) para permitir viewer."""
+    if dataset_id:
+        _require_dataset(dataset_id)
+        case_id = auth.case_of_dataset(dataset_id)
+        if case_id and not auth.has_case_access(request.state.user, case_id):
+            raise HTTPException(403, "sem acesso a este caso (segregação §48)")
+    return orchestrator.ask(question, dataset_id, request.state.user["username"])
+
+
+@app.get("/kb/docs")
+def kb_docs() -> dict:
+    """Base de conhecimento local (§51)."""
+    return {"docs": rag.list_docs()}
+
+
+@app.get("/kb/search")
+def kb_search(q: str, k: int = 3) -> dict:
+    return {"query": q, "results": rag.search(q, k)}
 
 
 @app.get("/integrity/verify")
