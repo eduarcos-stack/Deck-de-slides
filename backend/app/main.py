@@ -34,6 +34,7 @@ from app.modules import (
     rag,
     rollback,
     rules,
+    sandbox,
     temporal,
 )
 
@@ -203,6 +204,25 @@ def llm_metrics(dataset_id: str) -> dict:
     """Avaliação do assistente por critério (§65)."""
     _require_dataset(dataset_id)
     return metrics.llm_evaluation(dataset_id)
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 11 — Execution Sandbox (§53)
+# --------------------------------------------------------------------------- #
+class CodeBody(BaseModel):
+    code: str
+
+
+@app.post("/sandbox/inspect")
+def sandbox_inspect(body: CodeBody) -> dict:
+    """Inspeção estática por AST (§53). Não executa nada."""
+    return sandbox.inspect_code(body.code)
+
+
+@app.post("/sandbox/run")
+def sandbox_run(body: CodeBody) -> dict:
+    """Inspeção + execução em dataset de TESTE + diff (§53). Nunca toca no raw."""
+    return sandbox.run(body.code)
 
 
 @app.get("/integrity/verify")

@@ -98,6 +98,16 @@ export async function llmMetrics(datasetId) {
   return r.json();
 }
 
+// --- Milestone 11 — Execution Sandbox ---
+export async function sandboxRun(code) {
+  const r = await authFetch(`${BASE}/sandbox/run`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ code }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no sandbox");
+  return r.json();
+}
+
 export async function ingest(file, operator, caseId) {
   const fd = new FormData();
   fd.append("file", file);

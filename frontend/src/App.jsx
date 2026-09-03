@@ -11,6 +11,7 @@ import AuditView from "./components/AuditView.jsx";
 import ExportView from "./components/ExportView.jsx";
 import AssistantView from "./components/AssistantView.jsx";
 import MetricsView from "./components/MetricsView.jsx";
+import SandboxView from "./components/SandboxView.jsx";
 import Login from "./components/Login.jsx";
 
 const TABS = [
@@ -25,6 +26,7 @@ const TABS = [
   { id: "export", label: "EXPORT", enabled: true },
   { id: "assistant", label: "ASSISTANT", enabled: true },
   { id: "metrics", label: "METRICS", enabled: true },
+  { id: "sandbox", label: "SANDBOX", enabled: true },
 ];
 
 export default function App() {
@@ -139,6 +141,7 @@ export default function App() {
         {tab === "metrics" && (
           <MetricsView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
         )}
+        {tab === "sandbox" && <SandboxView />}
       </main>
     </div>
   );
