@@ -78,8 +78,9 @@ _INTENTS = [
     ("causal", r"correla|causa|caus[ao]|prova que|demonstra que"),
     ("transactions", r"quant[ao]s.*(transa|opera|evento)|quantas transa"),
     ("entity", r"carlos|homôn|homon|mesma pessoa|identidade|fus[ãa]o|merge|entidade"),
-    ("dedup", r"duplicat|evento|dedup"),
-    ("temporal", r"hor[áa]rio|pico|00h|meia-?noite|timestamp|tempor"),
+    # temporal antes de dedup: "pico de eventos de madrugada" é temporal, não dedup.
+    ("temporal", r"hor[áa]rio|pico|00h|meia-?noite|madrugada|timestamp|tempor"),
+    ("dedup", r"duplicat|dedup|reimport"),
     ("outlier", r"outlier|at[íi]pico|anomal"),
     ("profile", r"perfil|profil|qualidade|missing|ausênc|coluna|campo"),
 ]

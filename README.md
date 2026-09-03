@@ -35,6 +35,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Segurança — login obrigatório, RBAC, MFA/TOTP, segregação por caso, audit log | §48 | ✅ M7 |
 | Integridade da trilha — hash-chain + selo HMAC no Diário e no audit log | §36 | ✅ M8 |
 | LLM Orchestrator + RAG local (model-agnostic, prompt constitucional, papéis) | §37–40, §49–51 | ✅ M9 |
+| Métricas formais de validação (ER, dedup, reprodutibilidade, avaliação do LLM) | §62–67 | ✅ M10 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -95,6 +96,7 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── core/integrity            (§36 — hash-chain)
                                      ├── modules/rag               (§51 — RAG local)
                                      ├── modules/orchestrator      (§37-40 — LLM)
+                                     ├── modules/metrics           (§62-67 — validação)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

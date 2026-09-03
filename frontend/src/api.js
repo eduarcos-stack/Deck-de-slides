@@ -86,6 +86,18 @@ export async function kbDocs() {
   return r.json();
 }
 
+// --- Milestone 10 — Métricas de validação ---
+export async function datasetMetrics(datasetId) {
+  const r = await authFetch(`${BASE}/datasets/${datasetId}/metrics`);
+  if (!r.ok) throw new Error("Falha ao obter métricas");
+  return r.json();
+}
+export async function llmMetrics(datasetId) {
+  const r = await authFetch(`${BASE}/datasets/${datasetId}/metrics/llm`);
+  if (!r.ok) throw new Error("Falha na avaliação do assistente");
+  return r.json();
+}
+
 export async function ingest(file, operator, caseId) {
   const fd = new FormData();
   fd.append("file", file);

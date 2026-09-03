@@ -27,6 +27,7 @@ from app.modules import (
     entity_resolution,
     export,
     ingestion,
+    metrics,
     normalization,
     orchestrator,
     profiling,
@@ -185,6 +186,23 @@ def kb_docs() -> dict:
 @app.get("/kb/search")
 def kb_search(q: str, k: int = 3) -> dict:
     return {"query": q, "results": rag.search(q, k)}
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 10 — Métricas formais de validação (§62-67)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/metrics")
+def dataset_metrics(dataset_id: str) -> dict:
+    """Métricas de qualidade do sistema (§62-64) contra o ground truth (§67)."""
+    _require_dataset(dataset_id)
+    return metrics.full_report(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/metrics/llm")
+def llm_metrics(dataset_id: str) -> dict:
+    """Avaliação do assistente por critério (§65)."""
+    _require_dataset(dataset_id)
+    return metrics.llm_evaluation(dataset_id)
 
 
 @app.get("/integrity/verify")
