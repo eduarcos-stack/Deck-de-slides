@@ -68,6 +68,8 @@ export default function AuditView({ datasetId, datasets, onPick }) {
       </p>
       <DatasetPicker datasets={datasets} datasetId={datasetId} onPick={onPick} />
       {err && <div className="banner warn error">{err}</div>}
+
+      <IntegrityPanel />
       {!prov ? <p className="empty">Carregando proveniência…</p> : (
         <>
           <div className="card">
@@ -197,5 +199,47 @@ export default function AuditView({ datasetId, datasets, onPick }) {
         </>
       )}
     </>
+  );
+}
+
+function IntegrityPanel() {
+  const [res, setRes] = useState(null);
+  const [err, setErr] = useState(null);
+
+  async function verify() {
+    setErr(null); setRes(null);
+    try { setRes(await api.verifyIntegrity()); }
+    catch (e) { setErr(e.message); }
+  }
+
+  function Line({ label, chain }) {
+    return (
+      <div style={{ marginTop: 6 }}>
+        <span className={`badge ${chain.ok ? "" : "danger"}`}
+          style={chain.ok ? { background: "rgba(123,216,143,0.15)", color: "var(--ok)" } : {}}>
+          {chain.ok ? "ÍNTEGRA" : "ROMPIDA"}
+        </span>{" "}
+        <b>{label}</b> — {chain.entries} entrada(s).{" "}
+        {!chain.ok && <span className="error">rompida no item {chain.broken_at}: {chain.reason}</span>}
+      </div>
+    );
+  }
+
+  return (
+    <div className="card">
+      <h1 style={{ fontSize: 15 }}>Integridade da trilha — hash-chain (§36)</h1>
+      <p className="roadmap">
+        Cada entrada do Diário e do log de acesso é encadeada por hash e selada
+        com HMAC. Adulteração, remoção ou reordenação posterior tornam-se detectáveis.
+      </p>
+      <button className="primary" style={{ margin: 0 }} onClick={verify}>Verificar integridade</button>
+      {err && <div className="banner warn error" style={{ marginTop: 10 }}>{err} (exige papel admin)</div>}
+      {res && (
+        <div className={`banner ${res.overall_ok ? "ok" : "warn"}`} style={{ marginTop: 10 }}>
+          <Line label="Diário de Transformação" chain={res.transformation_diary} />
+          <Line label="Log de acesso" chain={res.access_log} />
+        </div>
+      )}
+    </div>
   );
 }

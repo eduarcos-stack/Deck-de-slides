@@ -168,6 +168,13 @@ CREATE TABLE IF NOT EXISTS provenance_edges (
 _MIGRATIONS = [
     ("findings", "depends_on", "TEXT NOT NULL DEFAULT '[]'"),
     ("transformations", "reverted_by", "TEXT"),
+    # Hash-chain de integridade (§36) nas trilhas append-only.
+    ("transformations", "prev_hash", "TEXT"),
+    ("transformations", "entry_hash", "TEXT"),
+    ("transformations", "seal", "TEXT"),
+    ("access_log", "prev_hash", "TEXT"),
+    ("access_log", "entry_hash", "TEXT"),
+    ("access_log", "seal", "TEXT"),
 ]
 
 

@@ -59,7 +59,8 @@ class SecurityMiddleware(BaseHTTPMiddleware):
 
         # 2. RBAC.
         is_write = method in _WRITE_METHODS
-        if path.startswith("/auth/users") or path.startswith("/auth/access-log"):
+        if (path.startswith("/auth/users") or path.startswith("/auth/access-log")
+                or path.startswith("/integrity")):
             if user["role"] != "admin":
                 return self._log_and_return(user, method, path,
                                             _deny(403, "recurso exclusivo do admin"))
@@ -85,16 +86,28 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         return self._log_and_return(user, method, path, response)
 
     def _log_and_return(self, user, method, path, response):
+        from app.core import integrity
+
         try:
+            fields = {
+                "actor": user["username"] if user else None,
+                "role": user["role"] if user else None,
+                "method": method,
+                "path": path,
+                "status": response.status_code,
+                "outcome": "allowed" if response.status_code < 400 else "denied",
+                "at": datetime.now(timezone.utc).isoformat(),
+            }
             with connect() as conn:
+                chain = integrity.link(conn, "access_log", fields)
                 conn.execute(
-                    """INSERT INTO access_log (actor, role, method, path, status, outcome, at)
-                       VALUES (?,?,?,?,?,?,?)""",
-                    (user["username"] if user else None,
-                     user["role"] if user else None, method, path,
-                     response.status_code,
-                     "allowed" if response.status_code < 400 else "denied",
-                     datetime.now(timezone.utc).isoformat()),
+                    """INSERT INTO access_log
+                       (actor, role, method, path, status, outcome, at,
+                        prev_hash, entry_hash, seal)
+                       VALUES (?,?,?,?,?,?,?,?,?,?)""",
+                    (fields["actor"], fields["role"], fields["method"], fields["path"],
+                     fields["status"], fields["outcome"], fields["at"],
+                     chain["prev_hash"], chain["entry_hash"], chain["seal"]),
                 )
         except Exception:  # noqa: BLE001 — auditoria nunca deve derrubar a resposta
             pass

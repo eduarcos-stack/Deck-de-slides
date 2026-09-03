@@ -18,31 +18,47 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+# Colunas de conteúdo do Diário que entram no hash-chain (§36). Imutáveis após
+# a inserção; reverted_by é excluído de propósito (muda no rollback).
+TRANSFORMATION_CHAIN_FIELDS = [
+    "transformation_id", "case_id", "dataset_id", "rule_id", "rule_version",
+    "parameters", "actor", "tool", "datetime", "justification", "approval",
+    "reversible", "records_affected",
+]
+
+
 def record_transformation(t: Transformation) -> None:
-    """Insere uma transformação no diário (append-only)."""
+    """Insere uma transformação no diário (append-only, encadeada — §36)."""
+    from app.core import integrity
+
+    fields = {
+        "transformation_id": t.transformation_id,
+        "case_id": t.case_id,
+        "dataset_id": t.dataset_id,
+        "rule_id": t.rule_id,
+        "rule_version": t.rule_version,
+        "parameters": _dumps(t.parameters),
+        "actor": t.actor,
+        "tool": t.tool,
+        "datetime": t.datetime.isoformat(),
+        "justification": t.justification,
+        "approval": t.approval,
+        "reversible": int(t.reversible),
+        "records_affected": t.records_affected,
+    }
     with connect() as conn:
+        chain = integrity.link(conn, "transformations", fields)
         conn.execute(
             """
             INSERT INTO transformations (
                 transformation_id, case_id, dataset_id, rule_id, rule_version,
                 parameters, actor, tool, datetime, justification, approval,
-                reversible, records_affected
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                reversible, records_affected, prev_hash, entry_hash, seal
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
-                t.transformation_id,
-                t.case_id,
-                t.dataset_id,
-                t.rule_id,
-                t.rule_version,
-                _dumps(t.parameters),
-                t.actor,
-                t.tool,
-                t.datetime.isoformat(),
-                t.justification,
-                t.approval,
-                int(t.reversible),
-                t.records_affected,
+                *[fields[k] for k in TRANSFORMATION_CHAIN_FIELDS],
+                chain["prev_hash"], chain["entry_hash"], chain["seal"],
             ),
         )
 

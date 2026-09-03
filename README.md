@@ -33,6 +33,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Rollback + Dependency Graph + Invalidação Automática | §57–59, P10 | ✅ M5 |
 | Pacote de Entregáveis (16 itens, relatório, ZIP, Provenance Completeness) | §60–61, §63 | ✅ M6 |
 | Segurança — login obrigatório, RBAC, MFA/TOTP, segregação por caso, audit log | §48 | ✅ M7 |
+| Integridade da trilha — hash-chain + selo HMAC no Diário e no audit log | §36 | ✅ M8 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -41,6 +42,10 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 > **Demonstração §57-59:** um achado depende de um merge de entidade; reverter o merge
 > (aba AUDIT) marca o achado como `STALE_REQUIRES_RECOMPUTATION` automaticamente. O diário
 > não é apagado (§36) — a reversão registra uma transformação inversa.
+>
+> **Demonstração §36:** cada entrada do Diário e do log de acesso é encadeada por hash e
+> selada com HMAC. Adulterar, remover ou reordenar qualquer entrada (mesmo direto no SQLite)
+> é detectado por `GET /integrity/verify` — aba AUDIT → "Verificar integridade".
 
 O esqueleto de governança (Diário de Transformação §35, Provenance Graph §34,
 status epistemológicos §9) já está no código, pronto para as próximas capacidades.

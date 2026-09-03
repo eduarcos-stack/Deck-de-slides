@@ -61,6 +61,12 @@ export async function accessLog() {
   return r.json();
 }
 
+export async function verifyIntegrity() {
+  const r = await authFetch(`${BASE}/integrity/verify`);
+  if (!r.ok) throw new Error((await r.json()).detail || "sem permissão");
+  return r.json();
+}
+
 export async function ingest(file, operator, caseId) {
   const fd = new FormData();
   fd.append("file", file);

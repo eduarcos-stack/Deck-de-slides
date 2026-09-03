@@ -151,6 +151,23 @@ def auth_access_log(limit: int = 100) -> dict:
     return {"entries": [dict(r) for r in rows]}
 
 
+@app.get("/integrity/verify")
+def integrity_verify() -> dict:
+    """Verifica o hash-chain do Diário e do log de acesso (§36). Admin-only."""
+    from app.core import integrity
+    from app.governance.provenance import TRANSFORMATION_CHAIN_FIELDS
+
+    access_fields = ["actor", "role", "method", "path", "status", "outcome", "at"]
+    with connect() as conn:
+        diary = integrity.verify_chain(conn, "transformations", TRANSFORMATION_CHAIN_FIELDS)
+        access = integrity.verify_chain(conn, "access_log", access_fields)
+    return {
+        "transformation_diary": diary,
+        "access_log": access,
+        "overall_ok": diary["ok"] and access["ok"],
+    }
+
+
 @app.post("/ingest")
 async def ingest_file(
     request: Request,
