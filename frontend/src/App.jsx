@@ -8,6 +8,7 @@ import EntitiesView from "./components/EntitiesView.jsx";
 import ExploreView from "./components/ExploreView.jsx";
 import FindingsView from "./components/FindingsView.jsx";
 import AuditView from "./components/AuditView.jsx";
+import ExportView from "./components/ExportView.jsx";
 
 const TABS = [
   { id: "case", label: "CASE", enabled: true },
@@ -18,6 +19,7 @@ const TABS = [
   { id: "explore", label: "EXPLORE", enabled: true },
   { id: "findings", label: "FINDINGS", enabled: true },
   { id: "audit", label: "AUDIT", enabled: true },
+  { id: "export", label: "EXPORT", enabled: true },
 ];
 
 export default function App() {
@@ -99,6 +101,9 @@ export default function App() {
         )}
         {tab === "audit" && (
           <AuditView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
+        )}
+        {tab === "export" && (
+          <ExportView datasetId={activeDataset} datasets={datasets} onPick={setActiveDataset} />
         )}
       </main>
     </div>

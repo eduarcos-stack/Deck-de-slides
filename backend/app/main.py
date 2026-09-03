@@ -12,6 +12,7 @@ from pathlib import Path
 
 from fastapi import FastAPI, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
 
 from pydantic import BaseModel
 
@@ -22,6 +23,7 @@ from app.modules import (
     deduplication,
     eda,
     entity_resolution,
+    export,
     ingestion,
     normalization,
     profiling,
@@ -453,3 +455,32 @@ def do_rollback(dataset_id: str, transformation_id: str, body: RollbackBody) -> 
         raise HTTPException(404, str(exc)) from exc
     except ValueError as exc:
         raise HTTPException(422, str(exc)) from exc
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 6 — Pacote de Entregáveis (§60-61, §63)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/package")
+def get_package(dataset_id: str) -> dict:
+    """Monta o pacote de 16 entregáveis (§60) como manifesto JSON."""
+    _require_dataset(dataset_id)
+    return export.build_package(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/report.md")
+def get_report(dataset_id: str) -> Response:
+    """Relatório analítico exportável em Markdown (§60 item 16)."""
+    _require_dataset(dataset_id)
+    return Response(export.render_markdown_report(dataset_id), media_type="text/markdown")
+
+
+@app.get("/datasets/{dataset_id}/export.zip")
+def get_export_zip(dataset_id: str) -> Response:
+    """Pacote completo de entregáveis em ZIP (§60)."""
+    _require_dataset(dataset_id)
+    data = export.build_zip(dataset_id)
+    return Response(
+        data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="trace-lm_pacote_{dataset_id[:8]}.zip"'},
+    )

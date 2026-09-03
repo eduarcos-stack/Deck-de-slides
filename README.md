@@ -31,6 +31,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | EDA + Finding Registry (histogramas, outliers, Pattern Provenance/Stability) | §28–33, §76 | ✅ M4 |
 | Adversarial Auditor ("como isso poderia estar errado?", SUPPORT×CHALLENGE) | §41–42 | ✅ M4 |
 | Rollback + Dependency Graph + Invalidação Automática | §57–59, P10 | ✅ M5 |
+| Pacote de Entregáveis (16 itens, relatório, ZIP, Provenance Completeness) | §60–61, §63 | ✅ M6 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -51,7 +52,8 @@ status epistemológicos §9) já está no código, pronto para as próximas capa
 Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
   CASE · DATA · QUALITY              ├── modules/ingestion         (§10)
   TRANSFORM · ENTITIES              ├── modules/raw_vault         (§11, P1)
-  EXPLORE · FINDINGS · AUDIT         ├── modules/profiling         (§12)
+  EXPLORE · FINDINGS                 ├── modules/profiling         (§12)
+  AUDIT · EXPORT
                                      ├── modules/rules             (§52)
                                      ├── modules/normalization     (§16-17)
                                      ├── modules/deduplication     (§20)
@@ -60,6 +62,7 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/eda               (§28-33)
                                      ├── modules/adversarial       (§41-42)
                                      ├── modules/rollback          (§57-59)
+                                     ├── modules/export            (§60-61, §63)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

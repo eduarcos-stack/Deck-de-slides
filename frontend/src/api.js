@@ -195,3 +195,17 @@ export async function doRollback(datasetId, transformationId, actor, justificati
   if (!r.ok) throw new Error((await r.json()).detail || "Falha no rollback");
   return r.json();
 }
+
+// --- Milestone 6 — Pacote de entregáveis ---
+export async function getPackage(datasetId) {
+  const r = await fetch(`${BASE}/datasets/${datasetId}/package`);
+  if (!r.ok) throw new Error("Falha ao montar pacote");
+  return r.json();
+}
+
+export function reportUrl(datasetId) {
+  return `${BASE}/datasets/${datasetId}/report.md`;
+}
+export function zipUrl(datasetId) {
+  return `${BASE}/datasets/${datasetId}/export.zip`;
+}
