@@ -38,6 +38,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Métricas formais de validação (ER, dedup, reprodutibilidade, avaliação do LLM) | §62–67 | ✅ M10 |
 | Execution Sandbox (inspeção estática → sandbox → dataset de teste → diff) | §53 | ✅ M11 |
 | Missing Data Semantic Analyzer (sentinelas por campo, confirmação humana → ER) | §15 | ✅ M12 |
+| Quality Analyzer (7 dimensões; distingue erro provável de divergência legítima) | §14 | ✅ M13 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -101,6 +102,7 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/metrics           (§62-67 — validação)
                                      ├── modules/sandbox           (§53 — execução isolada)
                                      ├── modules/missing           (§15 — missing semântico)
+                                     ├── modules/quality           (§14 — quality analyzer)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

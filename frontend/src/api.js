@@ -130,6 +130,13 @@ export async function getProfile(datasetId) {
   return r.json();
 }
 
+// --- Milestone 13 — Quality Analyzer (§14) ---
+export async function getQuality(datasetId) {
+  const r = await authFetch(`${BASE}/datasets/${datasetId}/quality`);
+  if (!r.ok) throw new Error("Falha na análise de qualidade");
+  return r.json();
+}
+
 // --- Milestone 12 — Missing Data Semantic Analyzer (§15) ---
 export async function getMissing(datasetId) {
   const r = await authFetch(`${BASE}/datasets/${datasetId}/missing`);

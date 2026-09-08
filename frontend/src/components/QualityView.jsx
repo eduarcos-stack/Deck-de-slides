@@ -32,6 +32,9 @@ export default function QualityView({ datasetId, datasets, onPick }) {
 
       <DatasetPicker datasets={datasets} datasetId={datasetId} onPick={onPick} />
       {error && <div className="banner warn error">{error}</div>}
+
+      <QualityScorecard datasetId={datasetId} />
+
       {!profile ? (
         <p className="empty">Calculando profiling…</p>
       ) : (
@@ -182,6 +185,59 @@ function Stat({ n, l, alert }) {
     <div className={`stat ${alert ? "alert" : ""}`}>
       <div className="n">{n}</div>
       <div className="l">{l}</div>
+    </div>
+  );
+}
+
+// Quality Analyzer (§14): dimensões de qualidade + divergências (≠ erro).
+function QualityScorecard({ datasetId }) {
+  const [q, setQ] = useState(null);
+  const [err, setErr] = useState(null);
+
+  useEffect(() => {
+    api.getQuality(datasetId).then(setQ).catch((e) => setErr(e.message));
+  }, [datasetId]);
+
+  if (err) return <div className="banner warn error">{err}</div>;
+  if (!q) return null;
+
+  const pct = (x) => (x === null ? "—" : `${Math.round(x * 100)}%`);
+
+  return (
+    <div className="card">
+      <h1 style={{ fontSize: 15 }}>
+        Quality Analyzer (§14) — qualidade global:{" "}
+        <span style={{ color: "var(--ok)" }}>{pct(q.overall)}</span>
+      </h1>
+      <p className="roadmap">
+        Distinto do profiling: avalia dimensões de qualidade e distingue erro
+        provável de divergência legítima. Divergência não é erro.
+      </p>
+      <div className="grid">
+        {Object.entries(q.dimensions).map(([k, v]) => (
+          <div key={k} className="stat" title={v.description}
+            style={{ borderLeft: v.score >= 0.99 ? "3px solid var(--ok)" : v.score !== null && v.score < 0.9 ? "3px solid var(--warn)" : "1px solid var(--border)" }}>
+            <div className="n" style={{ fontSize: 20 }}>{pct(v.score)}</div>
+            <div className="l">{k.replace(/_/g, " ")}</div>
+          </div>
+        ))}
+      </div>
+
+      {q.divergences.length === 0 ? (
+        <div className="banner ok" style={{ marginTop: 12 }}>
+          Nenhuma divergência intra-entidade em campos identitários estáveis.
+        </div>
+      ) : (
+        <div style={{ marginTop: 12 }}>
+          {q.divergences.map((d, i) => (
+            <div key={i} className="banner warn">
+              <b>{d.entity.name}</b> ({d.entity.dob}) — campo <span className="mono">{d.field}</span>:
+              {" "}{d.values.join(" ≠ ")}. <span className="badge warn">DIVERGÊNCIA (não erro)</span>
+              <div style={{ marginTop: 4 }}>{d.message}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -32,6 +32,7 @@ from app.modules import (
     normalization,
     orchestrator,
     profiling,
+    quality,
     rag,
     rollback,
     rules,
@@ -304,6 +305,13 @@ def get_profile(dataset_id: str) -> dict:
     if not exists:
         raise HTTPException(404, "Dataset não encontrado.")
     return profiling.profile_dataset(dataset_id).model_dump()
+
+
+@app.get("/datasets/{dataset_id}/quality")
+def get_quality(dataset_id: str) -> dict:
+    """Módulo 3 — Quality Analyzer (§14). Dimensões + divergências (≠ erro)."""
+    _require_dataset(dataset_id)
+    return quality.analyze(dataset_id)
 
 
 # --------------------------------------------------------------------------- #
