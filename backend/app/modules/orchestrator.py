@@ -37,6 +37,65 @@ LOGICAL_ROLES = [
     "Temporal Analyst", "EDA Analyst", "Adversarial Auditor", "Report Synthesizer",
 ]
 
+# Tiers de modelo (§50). A plataforma é model-agnostic: trocar o LLM ou o tier
+# não obriga reescrever nada — o tier é metadado de roteamento, não compute real.
+_WORKSTATION_CAPS = ["classificação", "explicação", "geração de regras", "tool calling"]
+TIER_PROFILES = {
+    "workstation": {
+        "tier": "workstation",
+        "description": ("Modelo compacto para classificação, explicação, geração de "
+                        "regras e tool calling (§50). Roda em workstation."),
+        "model_hint": "open-weight instruct compacto (~7-8B)",
+        "capabilities": _WORKSTATION_CAPS,
+        "max_context_tokens": 8192,
+    },
+    "server": {
+        "tier": "server",
+        "description": ("Modelo maior para raciocínio complexo, documentos extensos, "
+                        "síntese multi-fonte e adversarial analysis (§50). Roda em "
+                        "servidor institucional."),
+        "model_hint": "open-weight instruct grande (70B+)",
+        "capabilities": _WORKSTATION_CAPS + [
+            "raciocínio complexo", "documentos extensos", "síntese multi-fonte",
+            "adversarial analysis"],
+        "max_context_tokens": 128000,
+    },
+}
+_TIER_ORDER = {"workstation": 0, "server": 1}
+
+# Papel lógico -> tier recomendado. Tarefas de raciocínio profundo pedem servidor.
+_ROLE_TIER = {
+    "Data Guardian": "workstation", "Profiler": "workstation",
+    "Transformation Planner": "workstation", "Entity Analyst": "workstation",
+    "Temporal Analyst": "workstation", "EDA Analyst": "workstation",
+    "Adversarial Auditor": "server", "Report Synthesizer": "server",
+}
+
+
+def current_tier() -> str:
+    t = os.environ.get("TRACELM_LLM_TIER", "workstation")
+    return t if t in TIER_PROFILES else "workstation"
+
+
+def recommended_tier(role: str) -> str:
+    return _ROLE_TIER.get(role, "workstation")
+
+
+def tier_serves(current: str, recommended: str) -> bool:
+    """Um tier atende a demanda se for igual ou superior ao recomendado."""
+    return _TIER_ORDER.get(current, 0) >= _TIER_ORDER.get(recommended, 0)
+
+
+def tier_status() -> dict:
+    """Perfis de tier + tier corrente + tabela papel->tier (§50)."""
+    return {
+        "current": current_tier(),
+        "profiles": TIER_PROFILES,
+        "role_tier": _ROLE_TIER,
+        "note": ("Model-agnostic (§50): trocar o LLM ou o tier não obriga reescrever "
+                 "a plataforma. O provider padrão é local determinístico (sem pesos)."),
+    }
+
 
 class LLMProvider:
     """Interface model-agnostic (§50). compose() transforma o contexto estruturado
@@ -205,6 +264,17 @@ def ask(question: str, dataset_id: str | None, actor: str) -> dict:
     provider = get_provider()
     answer_text = provider.compose({"draft_answer": draft})
 
+    cur, rec = current_tier(), recommended_tier(role)
+    served = tier_serves(cur, rec)
+    tier = {
+        "current": cur,
+        "recommended": rec,
+        "served": served,
+        "note": ("O tier corrente atende esta tarefa." if served else
+                 f"Esta tarefa ({role}) se beneficia do tier '{rec}' (§50); o tier "
+                 f"corrente '{cur}' atende de forma limitada."),
+    }
+
     return {
         "role": role,
         "intent": intent,
@@ -213,6 +283,7 @@ def ask(question: str, dataset_id: str | None, actor: str) -> dict:
         "citations": citations,
         "guardrails": guardrails,
         "provider": provider.name,
+        "tier": tier,
         "note": ("LLM ≠ motor de execução (§4). As ferramentas determinísticas "
                  "produziram os números; o assistente apenas roteia e explica."),
     }

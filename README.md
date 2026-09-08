@@ -39,6 +39,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | Execution Sandbox (inspeção estática → sandbox → dataset de teste → diff) | §53 | ✅ M11 |
 | Missing Data Semantic Analyzer (sentinelas por campo, confirmação humana → ER) | §15 | ✅ M12 |
 | Quality Analyzer (7 dimensões; distingue erro provável de divergência legítima) | §14 | ✅ M13 |
+| Tiers de modelo (workstation/servidor, roteamento por papel, model-agnostic) | §50 | ✅ M14 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -177,8 +178,11 @@ técnicas, eventos repetidos legítimos, missingness ambíguo e anomalias tempor
 - **P7 — Provenance by Default:** toda transformação relevante gera registro de lineage.
 - **P9 — Human Authority:** decisões de alto impacto exigem aprovação humana (M3).
 
-Fora do escopo do MVP (roadmap): Temporal Engine completo, EDA/anomaly detection,
-Adversarial Auditor, RAG, orquestração LLM, sandbox de execução, criptografia at-rest/RBAC.
+Cobertura do blueprint: MVP (§81) + todos os módulos do roadmap conceitual estão
+implementados (M4–M14). O que permanece fora é estritamente de **infraestrutura/deploy**,
+não de código de aplicação: TLS interno, criptografia de disco at-rest e MFA por
+hardware. O restante do §48 (RBAC, MFA/TOTP, segregação, audit log, secrets) está
+implementado.
 
 ---
 

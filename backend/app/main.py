@@ -169,6 +169,12 @@ def assistant_prompt() -> dict:
             "logical_roles": orchestrator.LOGICAL_ROLES}
 
 
+@app.get("/assistant/tiers")
+def assistant_tiers() -> dict:
+    """Tiers de modelo (§50): perfis, tier corrente e roteamento papel→tier."""
+    return orchestrator.tier_status()
+
+
 @app.get("/assistant/ask")
 def assistant_ask(request: Request, question: str, dataset_id: str | None = None) -> dict:
     """Interação em linguagem natural (§38). GET (idempotente) para permitir viewer."""

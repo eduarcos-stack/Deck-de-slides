@@ -66,8 +66,17 @@ export default function AssistantView({ datasetId, datasets, onPick }) {
             <span className="badge OBSERVED">papel: {resp.role}</span>
             <span className="chip">intent: {resp.intent}</span>
             <span className="chip">provider: {resp.provider}</span>
+            {resp.tier && (
+              <span className={`badge ${resp.tier.served ? "" : "warn"}`}
+                style={resp.tier.served ? { background: "rgba(123,216,143,0.15)", color: "var(--ok)" } : {}}>
+                tier: {resp.tier.current} → {resp.tier.recommended} (§50)
+              </span>
+            )}
           </div>
           <div style={{ marginTop: 12, fontSize: 15, lineHeight: 1.5 }}>{resp.answer}</div>
+          {resp.tier && !resp.tier.served && (
+            <div className="banner warn" style={{ marginTop: 8 }}>{resp.tier.note}</div>
+          )}
 
           {resp.plan.length > 0 && (
             <div className="banner" style={{ marginTop: 12 }}>
