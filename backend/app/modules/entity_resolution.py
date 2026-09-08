@@ -48,12 +48,24 @@ def _signature(payload: dict) -> tuple[str, str, str]:
     return (_norm_name(payload.get("name")), _digits(payload.get("cpf")), (payload.get("dob") or "").strip())
 
 
-def compare(a: dict, b: dict) -> dict:
-    """Compara dois registros e aplica as regras de decisão (§24)."""
+def compare(a: dict, b: dict, missing_values: dict[str, set[str]] | None = None) -> dict:
+    """Compara dois registros e aplica as regras de decisão (§24).
+
+    missing_values (§15): mapa field -> valores brutos confirmados como ausência.
+    Um valor assim é tratado como MISSING (não conflito), evitando false split
+    quando o CPF é um sentinela como "-1" ou "999999".
+    """
+    missing_values = missing_values or {}
     name_sim = fuzz.WRatio(_norm_name(a.get("name")), _norm_name(b.get("name"))) / 100.0
 
-    cpf_a, cpf_b = _digits(a.get("cpf")), _digits(b.get("cpf"))
-    dob_a, dob_b = (a.get("dob") or "").strip(), (b.get("dob") or "").strip()
+    def _val(field: str, raw) -> str:
+        if raw is not None and raw in missing_values.get(field, set()):
+            return ""  # confirmado como ausência (§15) -> tratado como missing
+        return raw
+
+    cpf_a, cpf_b = _digits(_val("cpf", a.get("cpf"))), _digits(_val("cpf", b.get("cpf")))
+    dob_a = (_val("dob", a.get("dob")) or "").strip()
+    dob_b = (_val("dob", b.get("dob")) or "").strip()
 
     def _cmp(x, y):
         if not x or not y:
@@ -98,10 +110,12 @@ def compare(a: dict, b: dict) -> dict:
 
 
 def compare_records(dataset_id: str, rid_a: str, rid_b: str) -> dict:
+    from app.modules import missing
+
     recs = dict(_records(dataset_id))
     if rid_a not in recs or rid_b not in recs:
         raise KeyError("record_id inexistente no dataset")
-    result = compare(recs[rid_a], recs[rid_b])
+    result = compare(recs[rid_a], recs[rid_b], missing.confirmed_missing(dataset_id))
     result["record_a"], result["record_b"] = rid_a, rid_b
     return result
 
@@ -113,7 +127,10 @@ def resolve(dataset_id: str) -> dict:
     de identidade (nome, CPF, nascimento). Blocos com mais de uma assinatura
     geram pares candidatos — potenciais colisões de identidade a decidir.
     """
+    from app.modules import missing
+
     records = _records(dataset_id)
+    missing_values = missing.confirmed_missing(dataset_id)  # §15
 
     # Blocking + clustering por assinatura.
     blocks: dict[str, list[tuple[str, dict]]] = defaultdict(list)
@@ -152,7 +169,7 @@ def resolve(dataset_id: str) -> dict:
             for j in range(i + 1, len(sigs)):
                 a = rep_payload[sigs[i]]
                 b = rep_payload[sigs[j]]
-                cmp = compare(a, b)
+                cmp = compare(a, b, missing_values)
                 candidate_pairs.append({
                     "entity_a": sig_to_entity[sigs[i]],
                     "entity_b": sig_to_entity[sigs[j]],

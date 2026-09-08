@@ -119,6 +119,19 @@ CREATE TABLE IF NOT EXISTS findings (
     created_at      TEXT NOT NULL
 );
 
+-- Missing Data Semantics (§15): interpretação confirmada de representações de
+-- ausência por campo/fonte. Nunca assume equivalência automaticamente — só o
+-- que um humano confirmou entra aqui e passa a valer para os motores.
+CREATE TABLE IF NOT EXISTS missing_semantics (
+    dataset_id  TEXT NOT NULL,
+    field       TEXT NOT NULL,
+    value       TEXT NOT NULL,
+    semantic    TEXT NOT NULL,          -- MISSING | SENTINEL_ZERO | LEGIT_VALUE | UNKNOWN
+    decided_by  TEXT NOT NULL,
+    at          TEXT NOT NULL,
+    PRIMARY KEY (dataset_id, field, value)
+);
+
 -- RAG local (§51): base de conhecimento de domínio (não é dado do caso).
 CREATE TABLE IF NOT EXISTS rag_docs (
     doc_id     TEXT PRIMARY KEY,

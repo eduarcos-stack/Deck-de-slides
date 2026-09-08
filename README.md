@@ -37,6 +37,7 @@ Este repositório implementa o **MVP** definido no [Blueprint Mestre](docs/TRACE
 | LLM Orchestrator + RAG local (model-agnostic, prompt constitucional, papéis) | §37–40, §49–51 | ✅ M9 |
 | Métricas formais de validação (ER, dedup, reprodutibilidade, avaliação do LLM) | §62–67 | ✅ M10 |
 | Execution Sandbox (inspeção estática → sandbox → dataset de teste → diff) | §53 | ✅ M11 |
+| Missing Data Semantic Analyzer (sentinelas por campo, confirmação humana → ER) | §15 | ✅ M12 |
 
 > **Demonstração §89-90:** o EDA encontra um "pico 00h-02h" que, sob a Pattern Stability
 > e o Adversarial Auditor, se revela **não robusto** — dependia de um parser que colapsa
@@ -99,6 +100,7 @@ Frontend (React/Vite)  ──/api──▶  Backend (FastAPI)
                                      ├── modules/orchestrator      (§37-40 — LLM)
                                      ├── modules/metrics           (§62-67 — validação)
                                      ├── modules/sandbox           (§53 — execução isolada)
+                                     ├── modules/missing           (§15 — missing semântico)
                                      └── governance/               (§34, §35, §45)
                                           │
                                    SQLite + Raw Vault (disco local)

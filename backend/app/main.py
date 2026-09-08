@@ -28,6 +28,7 @@ from app.modules import (
     export,
     ingestion,
     metrics,
+    missing,
     normalization,
     orchestrator,
     profiling,
@@ -303,6 +304,33 @@ def get_profile(dataset_id: str) -> dict:
     if not exists:
         raise HTTPException(404, "Dataset não encontrado.")
     return profiling.profile_dataset(dataset_id).model_dump()
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 12 — Missing Data Semantic Analyzer (§15)
+# --------------------------------------------------------------------------- #
+class MissingConfirmBody(BaseModel):
+    field: str
+    value: str
+    semantic: str  # MISSING | SENTINEL_ZERO | LEGIT_VALUE | UNKNOWN
+
+
+@app.get("/datasets/{dataset_id}/missing")
+def get_missing(dataset_id: str) -> dict:
+    """Sinaliza representações candidatas a ausência por campo (§15)."""
+    _require_dataset(dataset_id)
+    return missing.analyze(dataset_id)
+
+
+@app.post("/datasets/{dataset_id}/missing/confirm")
+def confirm_missing(dataset_id: str, request: Request, body: MissingConfirmBody) -> dict:
+    """Registra a interpretação humana de uma representação (§15, P9)."""
+    _require_dataset(dataset_id)
+    try:
+        return missing.confirm(dataset_id, body.field, body.value, body.semantic,
+                               request.state.user["username"])
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
 
 
 @app.get("/datasets/{dataset_id}/records")

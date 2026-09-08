@@ -130,6 +130,21 @@ export async function getProfile(datasetId) {
   return r.json();
 }
 
+// --- Milestone 12 — Missing Data Semantic Analyzer (§15) ---
+export async function getMissing(datasetId) {
+  const r = await authFetch(`${BASE}/datasets/${datasetId}/missing`);
+  if (!r.ok) throw new Error("Falha ao analisar ausências");
+  return r.json();
+}
+export async function confirmMissing(datasetId, field, value, semantic) {
+  const r = await authFetch(`${BASE}/datasets/${datasetId}/missing/confirm`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ field, value, semantic }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha ao confirmar");
+  return r.json();
+}
+
 export async function getRecords(datasetId, limit = 50) {
   const r = await authFetch(`${BASE}/datasets/${datasetId}/records?limit=${limit}`);
   if (!r.ok) throw new Error("Falha ao obter registros");

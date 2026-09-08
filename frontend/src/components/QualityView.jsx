@@ -94,17 +94,86 @@ export default function QualityView({ datasetId, datasets, onPick }) {
             </table>
           </div>
 
-          <div className="card">
-            <h1 style={{ fontSize: 15 }}>Próximas capacidades (roadmap do MVP)</h1>
-            <ul className="roadmap">
-              <li>TRANSFORM — normalização versionada com preview e aprovação (M2)</li>
-              <li>ENTITIES — Entity Resolution assistida + Impact Analysis (M3)</li>
-              <li>AUDIT — provenance graph e "Como chegamos aqui?" (M3)</li>
-            </ul>
-          </div>
+          <MissingAnalyzer datasetId={datasetId} />
         </>
       )}
     </>
+  );
+}
+
+// Missing Data Semantic Analyzer (§15): sinaliza representações candidatas a
+// ausência e permite confirmar o significado por campo (nunca automático, P3).
+const SEMANTICS = [
+  ["MISSING", "ausência"],
+  ["SENTINEL_ZERO", "zero-sentinela"],
+  ["LEGIT_VALUE", "valor legítimo"],
+  ["UNKNOWN", "indeterminado"],
+];
+
+function MissingAnalyzer({ datasetId }) {
+  const [data, setData] = useState(null);
+  const [msg, setMsg] = useState(null);
+  const [err, setErr] = useState(null);
+
+  function refresh() {
+    api.getMissing(datasetId).then(setData).catch((e) => setErr(e.message));
+  }
+  useEffect(refresh, [datasetId]);
+
+  async function confirm(field, value, semantic) {
+    setErr(null); setMsg(null);
+    try {
+      await api.confirmMissing(datasetId, field, value, semantic);
+      setMsg(`Confirmado: '${value || "(vazio)"}' em ${field} = ${semantic}. A Entity Resolution passa a usar isso (§15).`);
+      refresh();
+    } catch (e) { setErr(e.message); }
+  }
+
+  if (!data) return null;
+
+  return (
+    <div className="card">
+      <h1 style={{ fontSize: 15 }}>Missing Data Semantic Analyzer (§15)</h1>
+      <p className="roadmap">
+        Representações candidatas a ausência. Nenhuma equivalência é assumida
+        automaticamente (P3): confirme o significado por campo. Marcar um sentinela
+        de CPF como "ausência" evita que ele vire falso conflito na Entity Resolution.
+      </p>
+      {err && <div className="banner warn error">{err}</div>}
+      {msg && <div className="banner ok">{msg}</div>}
+      {data.fields.length === 0 ? (
+        <p className="empty">Nenhuma representação de ausência detectada.</p>
+      ) : (
+        data.fields.map((f) => (
+          <div key={f.field} style={{ marginTop: 12 }}>
+            <div className="mono" style={{ fontSize: 13, marginBottom: 4 }}>{f.field}</div>
+            <table>
+              <thead><tr><th>valor</th><th>ocorrências</th><th>semântica</th><th></th></tr></thead>
+              <tbody>
+                {f.candidates.map((c) => (
+                  <tr key={c.value}>
+                    <td className="mono">{c.display}</td>
+                    <td>{c.count}</td>
+                    <td>
+                      {c.confirmed_semantic
+                        ? <span className="badge" style={{ background: "rgba(123,216,143,0.15)", color: "var(--ok)" }}>{c.confirmed_semantic}</span>
+                        : <span className="empty">não confirmado</span>}
+                    </td>
+                    <td>
+                      <div className="chips">
+                        {SEMANTICS.map(([sem, label]) => (
+                          <button key={sem} className="chip" onClick={() => confirm(f.field, c.value, sem)}>{label}</button>
+                        ))}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))
+      )}
+    </div>
   );
 }
 
