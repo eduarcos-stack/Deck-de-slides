@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import math
 import re
+import unicodedata
 import uuid
 from collections import Counter
 from datetime import datetime, timezone
@@ -18,16 +19,63 @@ from pathlib import Path
 from app.core import config
 from app.core.db import connect
 
-_TOKEN = re.compile(r"[a-zA-ZáàâãéêíóôõúüçÁÀÂÃÉÊÍÓÔÕÚÜÇ0-9_]+")
-_STOP = {
+
+def _strip_accents(s: str) -> str:
+    return "".join(c for c in unicodedata.normalize("NFKD", s)
+                   if not unicodedata.combining(c))
+
+
+# Tokenização sobre texto já normalizado (sem acento, minúsculo).
+_TOKEN = re.compile(r"[a-z0-9_]+")
+_STOP = {_strip_accents(w) for w in {
     "de", "da", "do", "das", "dos", "a", "o", "e", "que", "um", "uma", "para",
     "com", "não", "nao", "em", "por", "os", "as", "no", "na", "ao", "à", "se",
     "the", "of", "and", "to", "is", "in",
+}}
+
+# Stemming leve de português: remove sufixos comuns de plural/derivação.
+# Preserva um radical de ao menos 3 letras para não colapsar palavras curtas.
+_SUFFIXES = ("coes", "cao", "oes", "mentos", "mento", "adores", "ador",
+             "acao", "ando", "adas", "ados", "ada", "ado", "res", "es", "s")
+
+# Expansão por sinônimos de DOMÍNIO (aplicada só à consulta, não ao corpus).
+# Melhora o recall sem embeddings: "movimentado" recupera docs sobre "valor".
+_SYNONYMS = {
+    "movimentado": ["valor", "montante"], "movimentacao": ["valor", "montante"],
+    "movimentar": ["valor", "montante"], "reais": ["valor", "montante"],
+    "real": ["valor"], "montante": ["valor"], "gasto": ["valor"],
+    "transferencia": ["transacao"], "transferencias": ["transacao"],
+    "vinculo": ["relacao", "entidade"], "vinculos": ["relacao", "entidade"],
+    "homonimo": ["entidade", "identidade"], "homonimos": ["entidade", "identidade"],
+    "duplicidade": ["duplicata", "deduplicacao"], "faltante": ["ausencia", "missing"],
 }
 
 
+def _stem(t: str) -> str:
+    for suf in _SUFFIXES:
+        if t.endswith(suf) and len(t) - len(suf) >= 3:
+            return t[: -len(suf)]
+    return t
+
+
 def _tokens(text: str) -> list[str]:
-    return [t.lower() for t in _TOKEN.findall(text) if t.lower() not in _STOP and len(t) > 2]
+    """Tokens do corpus: normaliza acento, remove stopwords, aplica stemming."""
+    norm = _strip_accents(text).lower()
+    out = []
+    for t in _TOKEN.findall(norm):
+        if len(t) > 2 and t not in _STOP:
+            out.append(_stem(t))
+    return out
+
+
+def _query_tokens(query: str) -> list[str]:
+    """Tokens da consulta: como o corpus + expansão por sinônimos de domínio."""
+    norm = _strip_accents(query).lower()
+    raw = [t for t in _TOKEN.findall(norm) if len(t) > 2 and t not in _STOP]
+    expanded = list(raw)
+    for t in raw:
+        expanded.extend(_SYNONYMS.get(t, []))
+    return [_stem(t) for t in expanded]
 
 
 def seed_kb() -> int:
@@ -78,9 +126,12 @@ def search(query: str, k: int = 3) -> list[dict]:
     corpus = _load_corpus()
     if not corpus:
         return []
-    q_tokens = _tokens(query)
+    q_tokens = _query_tokens(query)
     if not q_tokens:
         return []
+    # Termos para destacar o trecho: preservam acento para casar no texto original.
+    snip_terms = [t.lower() for t in re.findall(r"[^\W_]+", query, re.UNICODE)
+                  if len(t) > 2 and _strip_accents(t.lower()) not in _STOP]
 
     docs_tokens = [_tokens(d["text"]) for d in corpus]
     df: Counter[str] = Counter()
@@ -104,7 +155,8 @@ def search(query: str, k: int = 3) -> list[dict]:
         if score > 0:
             results.append({
                 "doc_id": d["doc_id"], "title": d["title"], "source": d["source"],
-                "score": round(score, 4), "snippet": _snippet(d["text"], q_tokens),
+                "score": round(score, 4),
+                "snippet": _snippet(d["text"], snip_terms or q_tokens),
             })
     results.sort(key=lambda r: -r["score"])
     return results[:k]

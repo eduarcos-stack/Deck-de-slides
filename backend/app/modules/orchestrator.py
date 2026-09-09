@@ -15,8 +15,15 @@ from __future__ import annotations
 
 import os
 import re
+import unicodedata
 
 from app.modules import deduplication, eda, entity_resolution, profiling, rag
+
+
+def _norm(s: str) -> str:
+    """Minúsculas sem acento — para casar padrões de intenção de forma robusta."""
+    return "".join(c for c in unicodedata.normalize("NFKD", s.lower())
+                   if not unicodedata.combining(c))
 
 # System prompt constitucional (§39) — versão simplificada do blueprint.
 CONSTITUTIONAL_PROMPT = """Você é um assistente local de preparação e análise \
@@ -133,24 +140,64 @@ def get_provider() -> LLMProvider:
 # --------------------------------------------------------------------------- #
 # Ordem importa: causalidade tem precedência (§31), pois perguntas causais
 # frequentemente citam nomes de entidades.
+# Padrões avaliados sobre texto normalizado (sem acento, minúsculo).
 _INTENTS = [
     ("causal", r"correla|causa|caus[ao]|prova que|demonstra que"),
+    # agregação de valores (R$) antes de transactions: "quanto foi movimentado".
+    ("aggregate", r"movimentad|montante|r\$|reais|valor total|soma|somatori|"
+                  r"total (movimentad|transacion|em reais|gasto)|"
+                  r"quanto.*(movim|reais|valor|montante|gasto|transferid|transacion)"),
     ("transactions", r"quant[ao]s.*(transa|opera|evento)|quantas transa"),
-    ("entity", r"carlos|homôn|homon|mesma pessoa|identidade|fus[ãa]o|merge|entidade"),
+    ("entity", r"carlos|homon|mesma pessoa|identidade|fusao|merge|entidade"),
     # temporal antes de dedup: "pico de eventos de madrugada" é temporal, não dedup.
-    ("temporal", r"hor[áa]rio|pico|00h|meia-?noite|madrugada|timestamp|tempor"),
+    ("temporal", r"horario|pico|00h|meia-?noite|madrugada|timestamp|tempor"),
     ("dedup", r"duplicat|dedup|reimport"),
-    ("outlier", r"outlier|at[íi]pico|anomal"),
-    ("profile", r"perfil|profil|qualidade|missing|ausênc|coluna|campo"),
+    ("outlier", r"outlier|atipico|anomal"),
+    ("profile", r"perfil|profil|qualidade|missing|ausenc|coluna|campo"),
 ]
 
 
 def _classify(question: str) -> str:
-    q = question.lower()
+    q = _norm(question)
     for intent, pat in _INTENTS:
         if re.search(pat, q):
             return intent
     return "general"
+
+
+def _brl(v: float) -> str:
+    """Formata em Real (pt-BR): 1234567.8 -> 'R$ 1.234.567,80'."""
+    return "R$ " + f"{v:,.2f}".replace(",", "§").replace(".", ",").replace("§", ".")
+
+
+def _amount_summary(dataset_id: str) -> dict:
+    """Soma determinística do campo 'amount' sobre as linhas brutas (§11)."""
+    import json
+
+    from app.core.db import connect
+
+    def to_num(v):
+        if v is None:
+            return None
+        s = str(v).strip().replace("R$", "").replace(" ", "")
+        if "," in s and "." in s:          # 1.234,56 -> 1234.56 (pt-BR)
+            s = s.replace(".", "").replace(",", ".")
+        elif "," in s:                       # 1234,56 -> 1234.56
+            s = s.replace(",", ".")
+        try:
+            return float(s)
+        except ValueError:
+            return None
+
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT original_payload FROM raw_records WHERE dataset_id = ?", (dataset_id,)
+        ).fetchall()
+    vals = [to_num(json.loads(r["original_payload"]).get("amount")) for r in rows]
+    nums = [v for v in vals if v is not None]
+    total = sum(nums)
+    return {"rows": len(vals), "counted": len(nums), "missing": len(vals) - len(nums),
+            "total": total, "mean": (total / len(nums) if nums else 0.0)}
 
 
 def _carlos_summary(dataset_id: str) -> dict:
@@ -202,6 +249,23 @@ def ask(question: str, dataset_id: str | None, actor: str) -> dict:
             f"(CPFs distintos). A atribuição de todas as linhas a uma pessoa única "
             f"NÃO é suportada. Status: CANDIDATE — decisão de fusão exige aprovação "
             f"humana e Impact Analysis (§25-26)."
+        )
+
+    elif intent == "aggregate" and need_dataset():
+        role = "EDA Analyst"
+        plan = ["raw_records.sum(amount)"]
+        agg = _amount_summary(dataset_id)
+        guardrails = [
+            "Soma sobre linhas BRUTAS preservadas (§11); duplicatas técnicas podem "
+            "inflar o total — a unidade de evento (§20) pode diferir.",
+            "Valores ausentes/inválidos são excluídos, não tratados como zero (§15).",
+        ]
+        detalhe = f", {agg['missing']} sem valor numérico" if agg["missing"] else ""
+        draft = (
+            f"Somando o campo 'amount' sobre {agg['rows']} linhas brutas: total "
+            f"{_brl(agg['total'])} ({agg['counted']} linha(s) com valor{detalhe}). "
+            f"Média por linha: {_brl(agg['mean'])}. Este é um total sobre registros "
+            f"brutos, não sobre eventos consolidados (§20)."
         )
 
     elif intent == "dedup" and need_dataset():
