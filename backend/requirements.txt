@@ -6,5 +6,6 @@ pydantic>=2.6
 polars>=0.20              # processamento determinístico e reproduzível
 rapidfuzz>=3.6            # similarity/Entity Resolution (M3)
 fastexcel>=0.10           # leitura de XLSX via polars.read_excel
+pyjwt[crypto]>=2.8        # validação de JWT assimétrico do Supabase (ES256/RS256 via JWKS)
 pytest>=8.0               # validação (§80)
 httpx>=0.27               # TestClient do FastAPI

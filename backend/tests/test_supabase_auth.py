@@ -93,6 +93,40 @@ def test_explicit_claim_wins(isolated_env, monkeypatch):
     assert out["user"]["role"] == "admin"
 
 
+def test_verify_es256_via_jwks(isolated_env, monkeypatch):
+    """Token assimétrico (JWT Signing Keys do Supabase) é validado via chave pública."""
+    from cryptography.hazmat.primitives.asymmetric import ec
+    import jwt as pyjwt
+    from app.modules import supabase_auth
+
+    monkeypatch.setenv("SUPABASE_URL", "https://proj.supabase.co")
+    priv = ec.generate_private_key(ec.SECP256R1())
+    # Injeta a chave pública no lugar do fetch de JWKS (sem rede no teste).
+    monkeypatch.setattr(supabase_auth, "_get_signing_key", lambda token: priv.public_key())
+    token = pyjwt.encode(_claims(email="perito@pc.es.gov.br"), priv, algorithm="ES256")
+
+    out = supabase_auth.exchange(token)
+    assert out["user"]["idp"] == "supabase"
+    assert out["user"]["role"] == "viewer"
+
+
+def test_es256_rejects_wrong_key(isolated_env, monkeypatch):
+    from cryptography.hazmat.primitives.asymmetric import ec
+    import jwt as pyjwt
+    from app.modules import supabase_auth
+
+    monkeypatch.setenv("SUPABASE_URL", "https://proj.supabase.co")
+    signer = ec.generate_private_key(ec.SECP256R1())
+    other = ec.generate_private_key(ec.SECP256R1())
+    monkeypatch.setattr(supabase_auth, "_get_signing_key", lambda token: other.public_key())
+    token = pyjwt.encode(_claims(), signer, algorithm="ES256")
+    try:
+        supabase_auth.verify_jwt(token)
+        assert False, "assinatura de chave errada deveria falhar"
+    except supabase_auth.SupabaseAuthError:
+        pass
+
+
 def test_session_token_is_accepted_by_middleware(isolated_env, monkeypatch):
     """A sessão emitida pela ponte autentica nas rotas protegidas (§48)."""
     from fastapi.testclient import TestClient

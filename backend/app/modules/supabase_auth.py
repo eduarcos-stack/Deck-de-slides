@@ -37,8 +37,8 @@ class SupabaseAuthError(Exception):
 
 
 def is_enabled() -> bool:
-    """A ponte só está ativa quando o segredo do projeto está configurado."""
-    return bool(os.environ.get("SUPABASE_JWT_SECRET"))
+    """Ativa se há como validar o token: segredo HS256 legado ou JWKS assimétrico."""
+    return bool(os.environ.get("SUPABASE_JWT_SECRET") or jwks_url())
 
 
 def demo_case() -> str:
@@ -53,35 +53,96 @@ def _b64url_decode(seg: str) -> bytes:
     return base64.urlsafe_b64decode(seg + "=" * (-len(seg) % 4))
 
 
-def verify_jwt(token: str) -> dict:
-    """Valida assinatura HS256 e expiração; devolve os claims decodificados."""
+# Algoritmos assimétricos aceitos (JWT Signing Keys do Supabase, sistema novo).
+_ASYMMETRIC_ALGS = ("ES256", "RS256", "EdDSA")
+_jwks_clients: dict = {}
+
+
+def jwks_url() -> str | None:
+    """URL do conjunto de chaves públicas (JWKS) do projeto Supabase.
+
+    Derivada de `SUPABASE_URL` (…/auth/v1/.well-known/jwks.json) ou definida
+    explicitamente em `SUPABASE_JWKS_URL`. Só chaves públicas trafegam aqui — o
+    segredo nunca sai (compatível com o espírito §47).
+    """
+    explicit = os.environ.get("SUPABASE_JWKS_URL")
+    if explicit:
+        return explicit
+    base = os.environ.get("SUPABASE_URL")
+    if base:
+        return base.rstrip("/") + "/auth/v1/.well-known/jwks.json"
+    return None
+
+
+def _get_signing_key(token: str):
+    """Resolve a chave pública do JWKS pelo `kid` do token (com cache)."""
+    from jwt import PyJWKClient
+
+    url = jwks_url()
+    if not url:
+        raise SupabaseAuthError(
+            "token assimétrico exige SUPABASE_URL (ou SUPABASE_JWKS_URL) no backend")
+    client = _jwks_clients.get(url)
+    if client is None:
+        client = PyJWKClient(url)
+        _jwks_clients[url] = client
+    return client.get_signing_key_from_jwt(token).key
+
+
+def _verify_hs256(token: str, header_b64: str, payload_b64: str, sig_b64: str) -> dict:
     secret = os.environ.get("SUPABASE_JWT_SECRET")
     if not secret:
         raise SupabaseAuthError("SUPABASE_JWT_SECRET não configurado")
     try:
-        header_b64, payload_b64, sig_b64 = token.split(".")
-    except ValueError as exc:
-        raise SupabaseAuthError("JWT malformado") from exc
-
-    try:
-        header = json.loads(_b64url_decode(header_b64))
         claims = json.loads(_b64url_decode(payload_b64))
         signature = _b64url_decode(sig_b64)
     except (ValueError, json.JSONDecodeError) as exc:
         raise SupabaseAuthError("JWT ilegível") from exc
-
-    if header.get("alg") != "HS256":
-        raise SupabaseAuthError(f"algoritmo não suportado: {header.get('alg')}")
-
-    signing_input = f"{header_b64}.{payload_b64}".encode()
-    expected = hmac.new(secret.encode(), signing_input, hashlib.sha256).digest()
+    expected = hmac.new(secret.encode(), f"{header_b64}.{payload_b64}".encode(),
+                        hashlib.sha256).digest()
     if not hmac.compare_digest(expected, signature):
         raise SupabaseAuthError("assinatura inválida")
-
     exp = claims.get("exp")
     if exp is not None and time.time() > float(exp):
         raise SupabaseAuthError("token expirado")
     return claims
+
+
+def _verify_asymmetric(token: str, alg: str) -> dict:
+    import jwt as pyjwt
+
+    key = _get_signing_key(token)
+    try:
+        # `aud` do Supabase é "authenticated"; não o exigimos para não acoplar.
+        return pyjwt.decode(token, key, algorithms=list(_ASYMMETRIC_ALGS),
+                            options={"verify_aud": False})
+    except pyjwt.ExpiredSignatureError as exc:
+        raise SupabaseAuthError("token expirado") from exc
+    except pyjwt.InvalidTokenError as exc:
+        raise SupabaseAuthError(f"token inválido: {exc}") from exc
+
+
+def verify_jwt(token: str) -> dict:
+    """Valida assinatura e expiração; devolve os claims.
+
+    Suporta HS256 (segredo compartilhado legado, stdlib pura) e as chaves de
+    assinatura assimétricas do Supabase (ES256/RS256/EdDSA via JWKS).
+    """
+    try:
+        header_b64, payload_b64, sig_b64 = token.split(".")
+    except ValueError as exc:
+        raise SupabaseAuthError("JWT malformado") from exc
+    try:
+        header = json.loads(_b64url_decode(header_b64))
+    except (ValueError, json.JSONDecodeError) as exc:
+        raise SupabaseAuthError("JWT ilegível") from exc
+
+    alg = header.get("alg")
+    if alg == "HS256":
+        return _verify_hs256(token, header_b64, payload_b64, sig_b64)
+    if alg in _ASYMMETRIC_ALGS:
+        return _verify_asymmetric(token, alg)
+    raise SupabaseAuthError(f"algoritmo não suportado: {alg}")
 
 
 # --------------------------------------------------------------------------- #
