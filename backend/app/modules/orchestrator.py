@@ -124,15 +124,70 @@ class LocalDeterministicProvider(LLMProvider):
         return context["draft_answer"]
 
 
+def _http_json(url: str, payload: dict, timeout: float) -> dict:
+    """POST JSON e devolve JSON. Isolado para ser testável (monkeypatch)."""
+    import json
+    import urllib.request
+
+    req = urllib.request.Request(
+        url, data=json.dumps(payload).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (endpoint próprio)
+        return json.loads(resp.read().decode())
+
+
+class RemoteOpenAICompatibleProvider(LLMProvider):
+    """Seam model-agnostic (§50) para um modelo open-weight que VOCÊ controla
+    (Ollama/llama.cpp local, ou um enclave próprio como um HF Space).
+
+    Fala o protocolo OpenAI-compatible (`/v1/chat/completions`) — que o Ollama
+    também expõe. NÃO é autoridade factual (§37): recebe os fatos determinísticos
+    já calculados e apenas os reescreve de forma didática, sem alterar números.
+    Em qualquer falha (endpoint fora, timeout, resposta inválida), faz FALLBACK
+    para o texto determinístico — o assistente nunca quebra nem inventa.
+
+    Zero-exfiltration (§47): o destino é infra sua, não um terceiro. Ainda assim
+    é egresso de rede — use apenas com um enclave sob seu controle.
+    """
+
+    name = "remote-openai-compatible"
+
+    def compose(self, context: dict) -> str:
+        draft = context["draft_answer"]
+        endpoint = os.environ.get("TRACELM_LLM_ENDPOINT")
+        if not endpoint:
+            return draft
+        model = os.environ.get("TRACELM_LLM_MODEL", "llama3")
+        timeout = float(os.environ.get("TRACELM_LLM_TIMEOUT", "30"))
+        guardrails = " ".join(context.get("guardrails") or [])
+        system = (CONSTITUTIONAL_PROMPT + "\n\nVocê recebe FATOS determinísticos já "
+                  "calculados por ferramentas. NÃO invente nem altere números, nomes "
+                  "ou datas. Reescreva de forma clara e didática, preservando "
+                  "exatamente os valores e as ressalvas epistemológicas.")
+        user = (f"Pergunta: {context.get('question', '')}\n\n"
+                f"Fatos determinísticos (não altere números):\n{draft}\n\n"
+                f"Ressalvas a preservar: {guardrails}")
+        try:
+            data = _http_json(endpoint, {
+                "model": model, "stream": False,
+                "messages": [{"role": "system", "content": system},
+                             {"role": "user", "content": user}],
+            }, timeout)
+            text = (data.get("choices") or [{}])[0].get("message", {}).get("content")
+            return text.strip() if text and text.strip() else draft
+        except Exception:  # noqa: BLE001 — fallback local: nunca quebra (§4)
+            return draft
+
+
 def get_provider() -> LLMProvider:
     choice = os.environ.get("TRACELM_LLM_PROVIDER", "local")
     if choice == "local":
         return LocalDeterministicProvider()
-    # Seam para um modelo open-weight local. Desabilitado por padrão para não
-    # violar o zero-exfiltration (§47); habilitar exige implementação explícita.
+    if choice == "remote":
+        return RemoteOpenAICompatibleProvider()
     raise RuntimeError(
         f"Provider '{choice}' não configurado. O padrão é 'local' (sem rede). "
-        "Plugue um modelo open-weight implementando LLMProvider.")
+        "Use 'remote' com TRACELM_LLM_ENDPOINT para um enclave próprio.")
 
 
 # --------------------------------------------------------------------------- #
@@ -326,7 +381,10 @@ def ask(question: str, dataset_id: str | None, actor: str) -> dict:
             draft += f" Conhecimento de domínio relevante: {citations[0]['title']}."
 
     provider = get_provider()
-    answer_text = provider.compose({"draft_answer": draft})
+    answer_text = provider.compose({
+        "draft_answer": draft, "guardrails": guardrails,
+        "citations": citations, "role": role, "question": question,
+    })
 
     cur, rec = current_tier(), recommended_tier(role)
     served = tier_serves(cur, rec)
