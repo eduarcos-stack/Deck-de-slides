@@ -1,0 +1,24 @@
+# TRACE-LM — deploy alternativo no Render (free tier). Um serviço web Docker.
+# Os segredos (SUPABASE_JWT_SECRET, TRACELM_SECRET) entram pelo dashboard,
+# nunca neste arquivo (ver docs/DEPLOY.md).
+services:
+  - type: web
+    name: tracelm-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: oregon
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: TRACELM_DEMO_SEED
+        value: "1"
+      - key: TRACELM_DEMO_CASE
+        value: CASE-DEMO
+      # Defina no dashboard (sync:false = não versionado):
+      - key: SUPABASE_JWT_SECRET
+        sync: false
+      - key: TRACELM_SECRET
+        sync: false
+      - key: TRACELM_CORS_ORIGINS
+        sync: false

@@ -37,6 +37,7 @@ from app.modules import (
     rollback,
     rules,
     sandbox,
+    supabase_auth,
     temporal,
 )
 
@@ -51,25 +52,60 @@ app = FastAPI(
 
 # Segurança (§48): autenticação, RBAC, segregação por caso e audit log.
 app.add_middleware(SecurityMiddleware)
+# CORS: local-first por padrão (front e back na mesma máquina/LAN). Em deploy
+# com frontend em outra origem (Vercel/Netlify), restrinja via env.
+_cors = os.environ.get("TRACELM_CORS_ORIGINS", "").strip()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # local-first: front e back na mesma máquina/LAN
+    allow_origins=[o.strip() for o in _cors.split(",") if o.strip()] or ["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Garante o schema local assim que a aplicação é carregada (não depende do
-# evento de startup, que não dispara em TestClient sem context manager).
-init_db()
-auth.seed_users()
-rag.seed_kb()
+
+def _bootstrap() -> None:
+    """Garante schema, usuários e base de conhecimento; semeia o demo se pedido.
+
+    Roda tanto no import (TestClient sem context manager não dispara startup)
+    quanto no evento de startup. O demo-seed é opt-in (`TRACELM_DEMO_SEED=1`)
+    para não afetar testes nem execução local.
+    """
+    init_db()
+    auth.seed_users()
+    rag.seed_kb()
+    if os.environ.get("TRACELM_DEMO_SEED") == "1":
+        _seed_demo()
+
+
+def _seed_demo() -> None:
+    """Ingesta o dataset sintético Illicit Matrix (§82) sob o caso do demo.
+
+    Idempotente: não faz nada se o caso já tiver datasets. Só dados fictícios.
+    """
+    from app.modules import supabase_auth
+
+    case_id = supabase_auth.demo_case()
+    with connect() as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM datasets WHERE case_id = ? LIMIT 1", (case_id,)
+        ).fetchone()
+    if exists:
+        return
+    csv_path = Path(__file__).resolve().parents[2] / "datasets" / "illicit_matrix" / "illicit_matrix.csv"
+    if not csv_path.exists():
+        return
+    ingestion.ingest(
+        content=csv_path.read_bytes(), filename="illicit_matrix.csv",
+        extension=".csv", operator="demo", case_id=case_id,
+    )
+
+
+_bootstrap()
 
 
 @app.on_event("startup")
 def _startup() -> None:
-    init_db()
-    auth.seed_users()
-    rag.seed_kb()
+    _bootstrap()
 
 
 @app.get("/health")
@@ -113,6 +149,28 @@ def auth_login_mfa(body: MfaLoginBody) -> dict:
     try:
         return auth.login_mfa(body.mfa_token, body.code)
     except (PermissionError,) as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+class SupabaseLoginBody(BaseModel):
+    access_token: str
+
+
+@app.get("/auth/config")
+def auth_config() -> dict:
+    """Informa ao frontend qual porta de entrada usar (Supabase ou clássico)."""
+    return {"supabase_enabled": supabase_auth.is_enabled(),
+            "demo_case": supabase_auth.demo_case()}
+
+
+@app.post("/auth/supabase")
+def auth_supabase(body: SupabaseLoginBody) -> dict:
+    """Troca um JWT do Supabase Auth por uma sessão TRACE-LM (deploy Grau B)."""
+    if not supabase_auth.is_enabled():
+        raise HTTPException(400, "login Supabase não está habilitado neste servidor")
+    try:
+        return supabase_auth.exchange(body.access_token)
+    except supabase_auth.SupabaseAuthError as exc:
         raise HTTPException(401, str(exc)) from exc
 
 

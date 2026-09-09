@@ -1,0 +1,13 @@
+# Mantém a imagem enxuta e sem dados de caso (§47).
+frontend/
+docs/
+**/.venv/
+**/node_modules/
+**/__pycache__/
+**/*.pyc
+backend/data/
+**/.signing_secret
+**/*.db
+.git/
+.github/
+*.md

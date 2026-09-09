@@ -159,6 +159,12 @@ cd backend && source .venv/bin/activate
 PYTHONPATH=. pytest -q
 ```
 
+### Deploy — demo público (Supabase Auth + FastAPI)
+Para colocar o MVP no ar (Supabase como Auth gerenciado, FastAPI no Fly.io/Render
+e o frontend no Vercel/Netlify), com **apenas dados sintéticos**, veja
+[docs/DEPLOY.md](docs/DEPLOY.md). O login usa o SDK do Supabase; o FastAPI valida
+o JWT e emite a sessão TRACE-LM, preservando RBAC, segregação e audit log (§48).
+
 ### Dataset demonstrador (Illicit Matrix — §82)
 ```bash
 python3 datasets/illicit_matrix/generate.py    # gera 72 registros + ground truth

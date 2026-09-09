@@ -1,0 +1,30 @@
+# TRACE-LM — backend FastAPI no Fly.io (free tier). Ajuste `app` para um nome
+# único antes do primeiro deploy (`fly launch --no-deploy` gera um nome).
+# Segredos NÃO ficam aqui: use `fly secrets set ...` (ver docs/DEPLOY.md).
+app = "tracelm-api"
+primary_region = "gru"  # São Paulo
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  # Habilita o demo público (dados sintéticos). Não coloque segredos aqui.
+  TRACELM_DEMO_SEED = "1"
+  TRACELM_DEMO_CASE = "CASE-DEMO"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [[http_service.checks]]
+    method = "GET"
+    path = "/health"
+    interval = "30s"
+    timeout = "5s"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "512mb"

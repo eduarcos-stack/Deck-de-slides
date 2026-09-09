@@ -21,8 +21,9 @@ from app.core.db import connect
 from app.modules import auth
 
 # Rotas públicas (sem token).
-_PUBLIC = {"/health", "/auth/login", "/auth/login/mfa",
-           "/openapi.json", "/docs", "/redoc", "/docs/oauth2-redirect"}
+_PUBLIC = {"/health", "/auth/login", "/auth/login/mfa", "/auth/supabase",
+           "/auth/config", "/openapi.json", "/docs", "/redoc",
+           "/docs/oauth2-redirect"}
 _WRITE_METHODS = {"POST", "PUT", "PATCH", "DELETE"}
 _DATASET_RE = re.compile(r"/datasets/([^/]+)")
 _CASE_RE = re.compile(r"/cases/([^/]+)")

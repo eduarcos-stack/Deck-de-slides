@@ -1,7 +1,8 @@
-// Cliente da API local do TRACE-LM. Todas as chamadas vão para a workstation
-// local via proxy /api (§47 — zero exfiltration por padrão).
+// Cliente da API do TRACE-LM. Por padrão fala com a workstation local via
+// proxy /api (§47 — zero exfiltration). Em deploy, VITE_API_URL aponta para o
+// backend FastAPI (ex.: https://tracelm-api.fly.dev) — ver docs/DEPLOY.md.
 
-const BASE = "/api";
+const BASE = import.meta.env.VITE_API_URL || "/api";
 const TOKEN_KEY = "tracelm_token";
 
 // --- Sessão (M7): token em localStorage + header de autenticação ---
@@ -36,6 +37,22 @@ export async function loginMfa(mfaToken, code) {
   });
   if (!r.ok) throw new Error((await r.json()).detail || "Código inválido");
   return r.json();
+}
+// Troca o JWT do Supabase Auth por uma sessão TRACE-LM (deploy Grau B).
+export async function loginSupabase(accessToken) {
+  const r = await fetch(`${BASE}/auth/supabase`, {
+    method: "POST", headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ access_token: accessToken }),
+  });
+  if (!r.ok) throw new Error((await r.json()).detail || "Falha no login Supabase");
+  return r.json();
+}
+export async function authConfig() {
+  try {
+    const r = await fetch(`${BASE}/auth/config`);
+    if (!r.ok) return { supabase_enabled: false };
+    return r.json();
+  } catch { return { supabase_enabled: false }; }
 }
 export async function getMe() {
   const r = await authFetch(`${BASE}/auth/me`);
