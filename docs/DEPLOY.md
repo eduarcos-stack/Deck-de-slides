@@ -212,6 +212,58 @@ build e o redirect de SPA; basta cadastrar as mesmas `VITE_*`.
 
 ---
 
+## Camada de IA neural opcional — enclave próprio (seam §50)
+
+Por padrão o assistente é **local e determinístico** (TF-IDF, sem pesos, sem
+rede — §47). O código traz um **seam model-agnostic** para plugar um modelo
+open-weight **que você controla**, sem reescrever a plataforma e **sem enviar
+dados a terceiros** (OpenAI etc.). Ative só por variáveis de ambiente; em
+qualquer falha do endpoint, o backend **cai de volta no local** — nunca quebra.
+
+**Distinção de rigor (§47).** "Zero-exfiltration a terceiros" (✅ atendido por um
+enclave seu) **não é** o mesmo que "sem rede alguma" (o padrão TF-IDF). Ao ligar
+o seam, o dado **sai do backend e trafega até o enclave** — infra sua, não de
+terceiro, mas é egresso de rede. Para dado real, descreva isso no protocolo como
+"processamento em enclave próprio", não como "local puro".
+
+**O que o modelo faz — e não faz.** O provider generativo **não é autoridade
+factual (§4/§37)**: recebe os números já calculados pelas ferramentas
+determinísticas e apenas os **reescreve de forma didática**, com instrução
+explícita de não inventar/alterar valores. Os embeddings melhoram só a
+**recuperação** do RAG; a resposta factual continua vindo dos motores.
+
+### Opção 1 — Ollama local (desenvolvimento)
+Na sua máquina: `ollama run llama3` (e `ollama pull nomic-embed-text`). Ollama
+expõe o protocolo OpenAI-compatible em `http://localhost:11434/v1`. No backend
+**local** (não no Render — `localhost` não é acessível de fora):
+```bash
+export TRACELM_LLM_PROVIDER=remote
+export TRACELM_LLM_ENDPOINT=http://localhost:11434/v1/chat/completions
+export TRACELM_LLM_MODEL=llama3
+export TRACELM_EMBEDDINGS_ENDPOINT=http://localhost:11434/v1/embeddings
+export TRACELM_EMBEDDINGS_MODEL=nomic-embed-text
+```
+
+### Opção 2 — Hugging Face Space (nuvem, enclave próprio)
+Crie um **Space** (free CPU, até 16 GB RAM) rodando um servidor OpenAI-compatible
+(llama.cpp `server`, ou Ollama). Exponha `/v1/chat/completions` e `/v1/embeddings`
+e proteja com um token. No **Render** (`tracelm-api → Environment`), defina as
+mesmas variáveis apontando para a URL do Space. Caveats reais: CPU-only (LLM
+generativo fica lento), o Space **dorme** por inatividade (cold start), e o free
+tier é melhor para **embeddings** (modelo pequeno) do que para o LLM grande.
+
+> Colab/Kaggle + túnel (ngrok) servem para **validar a tese**, não para produção
+> contínua (efêmeros, limite de horas). Não use para o demo público.
+
+### Variáveis do seam (todas opcionais)
+| Variável | Papel |
+|---|---|
+| `TRACELM_LLM_PROVIDER` | `local` (padrão) ou `remote`. |
+| `TRACELM_LLM_ENDPOINT` / `_MODEL` / `_TIMEOUT` | provider generativo (chat OpenAI-compatible). |
+| `TRACELM_EMBEDDINGS_ENDPOINT` / `_MODEL` / `_TIMEOUT` | embeddings do RAG (senão TF-IDF). |
+
+---
+
 ## Evolução para Grau C (Postgres gerenciado)
 
 Trocar o SQLite pelo Postgres do Supabase exige reescrever `app/core/db.py` e o

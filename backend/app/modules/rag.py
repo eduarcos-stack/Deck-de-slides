@@ -9,6 +9,7 @@ embeddings externo e sem rede (§47, zero exfiltration).
 from __future__ import annotations
 
 import math
+import os
 import re
 import unicodedata
 import uuid
@@ -18,6 +19,9 @@ from pathlib import Path
 
 from app.core import config
 from app.core.db import connect
+
+# Cache de vetores de embedding por (endpoint, modelo, doc_id) — corpus pequeno.
+_EMB_CACHE: dict = {}
 
 
 def _strip_accents(s: str) -> str:
@@ -121,17 +125,90 @@ def _load_corpus() -> list[dict]:
         return [dict(r) for r in conn.execute("SELECT * FROM rag_docs")]
 
 
+def _embeddings_endpoint() -> str | None:
+    return os.environ.get("TRACELM_EMBEDDINGS_ENDPOINT")
+
+
+def _embed_texts(texts: list[str]) -> list[list[float]]:
+    """POST OpenAI-compatible /v1/embeddings; devolve um vetor por texto.
+
+    Isolado para ser testável (monkeypatch). Ollama e servidores llama.cpp
+    expõem esse mesmo protocolo. Só chaves/textos do enclave próprio trafegam.
+    """
+    import json
+    import urllib.request
+
+    endpoint = _embeddings_endpoint()
+    model = os.environ.get("TRACELM_EMBEDDINGS_MODEL", "nomic-embed-text")
+    timeout = float(os.environ.get("TRACELM_EMBEDDINGS_TIMEOUT", "15"))
+    req = urllib.request.Request(
+        endpoint, data=json.dumps({"model": model, "input": texts}).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310 (endpoint próprio)
+        data = json.loads(resp.read().decode())
+    return [row["embedding"] for row in data["data"]]
+
+
+def _cosine(a: list[float], b: list[float]) -> float:
+    dot = sum(x * y for x, y in zip(a, b))
+    na = math.sqrt(sum(x * x for x in a))
+    nb = math.sqrt(sum(y * y for y in b))
+    return dot / (na * nb) if na and nb else 0.0
+
+
+def _search_embeddings(query: str, corpus: list[dict], snip_terms: list[str],
+                       k: int) -> list[dict]:
+    """Busca semântica por embeddings (seam §50), com cache dos vetores dos docs."""
+    endpoint = _embeddings_endpoint()
+    model = os.environ.get("TRACELM_EMBEDDINGS_MODEL", "nomic-embed-text")
+    qv = _embed_texts([query])[0]
+
+    missing_texts, missing_idx, doc_vecs = [], [], [None] * len(corpus)
+    for i, d in enumerate(corpus):
+        cached = _EMB_CACHE.get((endpoint, model, d["doc_id"]))
+        if cached is not None:
+            doc_vecs[i] = cached
+        else:
+            missing_texts.append(d["text"])
+            missing_idx.append(i)
+    if missing_texts:
+        for j, vec in zip(missing_idx, _embed_texts(missing_texts)):
+            _EMB_CACHE[(endpoint, model, corpus[j]["doc_id"])] = vec
+            doc_vecs[j] = vec
+
+    results = []
+    for d, dv in zip(corpus, doc_vecs):
+        score = _cosine(qv, dv)
+        if score > 0:
+            results.append({
+                "doc_id": d["doc_id"], "title": d["title"], "source": d["source"],
+                "score": round(score, 4), "snippet": _snippet(d["text"], snip_terms),
+            })
+    results.sort(key=lambda r: -r["score"])
+    return results[:k]
+
+
 def search(query: str, k: int = 3) -> list[dict]:
-    """Recupera os k documentos mais relevantes por TF-IDF cosine."""
+    """Recupera os k documentos mais relevantes.
+
+    Padrão: TF-IDF local (§51, sem rede). Se TRACELM_EMBEDDINGS_ENDPOINT estiver
+    configurado (enclave próprio §50), usa embeddings; em qualquer falha, cai de
+    volta no TF-IDF — nunca quebra.
+    """
     corpus = _load_corpus()
     if not corpus:
-        return []
-    q_tokens = _query_tokens(query)
-    if not q_tokens:
         return []
     # Termos para destacar o trecho: preservam acento para casar no texto original.
     snip_terms = [t.lower() for t in re.findall(r"[^\W_]+", query, re.UNICODE)
                   if len(t) > 2 and _strip_accents(t.lower()) not in _STOP]
+    if _embeddings_endpoint():
+        try:
+            return _search_embeddings(query, corpus, snip_terms, k)
+        except Exception:  # noqa: BLE001 — fallback TF-IDF local, nunca quebra
+            pass
+    q_tokens = _query_tokens(query)
+    if not q_tokens:
+        return []
 
     docs_tokens = [_tokens(d["text"]) for d in corpus]
     df: Counter[str] = Counter()
