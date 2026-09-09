@@ -1,0 +1,12 @@
+# TRACE-LM frontend no Netlify (alternativa ao Vercel). Defina as VITE_* em
+# Site settings → Environment variables (ver docs/DEPLOY.md).
+[build]
+  base = "frontend"
+  command = "npm run build"
+  publish = "dist"
+
+# SPA: todas as rotas caem no index.html.
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

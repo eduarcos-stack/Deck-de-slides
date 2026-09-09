@@ -1,0 +1,50 @@
+{
+  "description": "Ground truth do dataset sintético Illicit Matrix (Blueprint §82).",
+  "total_records": 72,
+  "distinct_entities": {
+    "carlos_a": {
+      "identity": {
+        "name": "Carlos Eduardo Silva",
+        "cpf": "111.222.333-44",
+        "dob": "14/05/1980",
+        "company": "Nexus Log LTDA",
+        "city": "Vila Velha"
+      },
+      "note": "14 eventos legítimos + repetições"
+    },
+    "carlos_b": {
+      "identity": {
+        "name": "Carlos Eduardo Silva",
+        "cpf": "999.888.777-66",
+        "dob": "20/09/1982",
+        "company": "Vanguarda Fomento",
+        "city": "Serra"
+      },
+      "note": "5 eventos, empresa distinta"
+    },
+    "expected_decision_carlos_a_vs_b": "NON-MATCH",
+    "rationale": "Nome idêntico (sim=1.00), mas CPF e nascimento conflitantes (dois identificadores altamente discriminantes) — §24, §85."
+  },
+  "technical_duplicates": {
+    "count": 4,
+    "pairs": null,
+    "note": "mesmo event_id reimportado (lote 2)"
+  },
+  "legitimate_repeated_events": {
+    "count": 3,
+    "note": "parcelas recorrentes de Carlos A"
+  },
+  "missing_sentinel_records": {
+    "count": 8
+  },
+  "temporal_anomalies": {
+    "count": 2,
+    "note": "timestamp 24:00 — risco de colapso p/ meia-noite (§89)"
+  },
+  "amount_outlier": {
+    "record_index": 30,
+    "value": "4875200.00",
+    "note": "outlier artificial de valor — não é indício de ilicitude (§30)"
+  },
+  "seed": 20240815
+}

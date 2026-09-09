@@ -1,0 +1,770 @@
+"""API do TRACE-LM — MVP (Blueprint §37, §44).
+
+Local-first (§47): a API roda na workstation/servidor institucional; por padrão
+nada é enviado a serviço externo. O LLM não tem acesso direto à base — esta
+camada expõe apenas os serviços determinísticos das capacidades 1-3 do MVP.
+"""
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+from fastapi import FastAPI, Form, HTTPException, Request, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import Response
+
+from pydantic import BaseModel
+
+from app.core.authmw import SecurityMiddleware
+from app.core.db import connect, init_db
+from app.governance import provenance
+from app.modules import (
+    adversarial,
+    auth,
+    deduplication,
+    eda,
+    entity_resolution,
+    export,
+    ingestion,
+    metrics,
+    missing,
+    normalization,
+    orchestrator,
+    profiling,
+    quality,
+    rag,
+    rollback,
+    rules,
+    sandbox,
+    supabase_auth,
+    temporal,
+)
+
+app = FastAPI(
+    title="TRACE-LM API",
+    version="0.1.0-mvp-m1",
+    description=(
+        "Transformação Rastreável e Análise Confiável de Evidências. "
+        "AI-assisted, human-controlled, provenance-first."
+    ),
+)
+
+# Segurança (§48): autenticação, RBAC, segregação por caso e audit log.
+app.add_middleware(SecurityMiddleware)
+# CORS: local-first por padrão (front e back na mesma máquina/LAN). Em deploy
+# com frontend em outra origem (Vercel/Netlify), restrinja via env.
+_cors = os.environ.get("TRACELM_CORS_ORIGINS", "").strip()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[o.strip() for o in _cors.split(",") if o.strip()] or ["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+def _bootstrap() -> None:
+    """Garante schema, usuários e base de conhecimento; semeia o demo se pedido.
+
+    Roda tanto no import (TestClient sem context manager não dispara startup)
+    quanto no evento de startup. O demo-seed é opt-in (`TRACELM_DEMO_SEED=1`)
+    para não afetar testes nem execução local.
+    """
+    init_db()
+    auth.seed_users()
+    rag.seed_kb()
+    if os.environ.get("TRACELM_DEMO_SEED") == "1":
+        _seed_demo()
+
+
+def _seed_demo() -> None:
+    """Ingesta o dataset sintético Illicit Matrix (§82) sob o caso do demo.
+
+    Idempotente: não faz nada se o caso já tiver datasets. Só dados fictícios.
+    """
+    from app.modules import supabase_auth
+
+    case_id = supabase_auth.demo_case()
+    with connect() as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM datasets WHERE case_id = ? LIMIT 1", (case_id,)
+        ).fetchone()
+    if exists:
+        return
+    csv_path = Path(__file__).resolve().parents[2] / "datasets" / "illicit_matrix" / "illicit_matrix.csv"
+    if not csv_path.exists():
+        return
+    ingestion.ingest(
+        content=csv_path.read_bytes(), filename="illicit_matrix.csv",
+        extension=".csv", operator="demo", case_id=case_id,
+    )
+
+
+_bootstrap()
+
+
+@app.on_event("startup")
+def _startup() -> None:
+    _bootstrap()
+
+
+@app.get("/health")
+def health() -> dict:
+    return {"status": "ok", "principle": "provenance-first"}
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 7 — Autenticação, RBAC e MFA (§48)
+# --------------------------------------------------------------------------- #
+class LoginBody(BaseModel):
+    username: str
+    password: str
+
+
+class MfaLoginBody(BaseModel):
+    mfa_token: str
+    code: str
+
+
+class MfaCodeBody(BaseModel):
+    code: str
+
+
+class NewUserBody(BaseModel):
+    username: str
+    password: str
+    role: str
+
+
+@app.post("/auth/login")
+def auth_login(body: LoginBody) -> dict:
+    try:
+        return auth.login(body.username, body.password)
+    except PermissionError as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+@app.post("/auth/login/mfa")
+def auth_login_mfa(body: MfaLoginBody) -> dict:
+    try:
+        return auth.login_mfa(body.mfa_token, body.code)
+    except (PermissionError,) as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+class SupabaseLoginBody(BaseModel):
+    access_token: str
+
+
+@app.get("/auth/config")
+def auth_config() -> dict:
+    """Informa ao frontend qual porta de entrada usar (Supabase ou clássico)."""
+    return {"supabase_enabled": supabase_auth.is_enabled(),
+            "demo_case": supabase_auth.demo_case()}
+
+
+@app.post("/auth/supabase")
+def auth_supabase(body: SupabaseLoginBody) -> dict:
+    """Troca um JWT do Supabase Auth por uma sessão TRACE-LM (deploy Grau B)."""
+    if not supabase_auth.is_enabled():
+        raise HTTPException(400, "login Supabase não está habilitado neste servidor")
+    try:
+        return supabase_auth.exchange(body.access_token)
+    except supabase_auth.SupabaseAuthError as exc:
+        raise HTTPException(401, str(exc)) from exc
+
+
+@app.get("/auth/me")
+def auth_me(request: Request) -> dict:
+    u = request.state.user
+    return {"user_id": u["user_id"], "username": u["username"], "role": u["role"],
+            "mfa_enabled": bool(u["mfa_enabled"])}
+
+
+@app.post("/auth/mfa/setup")
+def auth_mfa_setup(request: Request) -> dict:
+    return auth.mfa_setup(request.state.user["user_id"])
+
+
+@app.post("/auth/mfa/enable")
+def auth_mfa_enable(request: Request, body: MfaCodeBody) -> dict:
+    try:
+        return auth.mfa_enable(request.state.user["user_id"], body.code)
+    except PermissionError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/auth/users")
+def auth_list_users() -> dict:
+    return {"users": auth.list_users()}
+
+
+@app.post("/auth/users")
+def auth_create_user(body: NewUserBody) -> dict:
+    try:
+        return auth.create_user(body.username, body.password, body.role)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/auth/access-log")
+def auth_access_log(limit: int = 100) -> dict:
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT actor, role, method, path, status, outcome, at FROM access_log "
+            "ORDER BY log_id DESC LIMIT ?", (limit,)
+        ).fetchall()
+    return {"entries": [dict(r) for r in rows]}
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 9 — LLM Orchestrator + RAG local (§37-40, §49-51)
+# --------------------------------------------------------------------------- #
+@app.get("/assistant/system-prompt")
+def assistant_prompt() -> dict:
+    """System prompt constitucional do LLM (§39) e papéis lógicos (§40)."""
+    return {"system_prompt": orchestrator.CONSTITUTIONAL_PROMPT,
+            "logical_roles": orchestrator.LOGICAL_ROLES}
+
+
+@app.get("/assistant/tiers")
+def assistant_tiers() -> dict:
+    """Tiers de modelo (§50): perfis, tier corrente e roteamento papel→tier."""
+    return orchestrator.tier_status()
+
+
+@app.get("/assistant/ask")
+def assistant_ask(request: Request, question: str, dataset_id: str | None = None) -> dict:
+    """Interação em linguagem natural (§38). GET (idempotente) para permitir viewer."""
+    if dataset_id:
+        _require_dataset(dataset_id)
+        case_id = auth.case_of_dataset(dataset_id)
+        if case_id and not auth.has_case_access(request.state.user, case_id):
+            raise HTTPException(403, "sem acesso a este caso (segregação §48)")
+    return orchestrator.ask(question, dataset_id, request.state.user["username"])
+
+
+@app.get("/kb/docs")
+def kb_docs() -> dict:
+    """Base de conhecimento local (§51)."""
+    return {"docs": rag.list_docs()}
+
+
+@app.get("/kb/search")
+def kb_search(q: str, k: int = 3) -> dict:
+    return {"query": q, "results": rag.search(q, k)}
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 10 — Métricas formais de validação (§62-67)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/metrics")
+def dataset_metrics(dataset_id: str) -> dict:
+    """Métricas de qualidade do sistema (§62-64) contra o ground truth (§67)."""
+    _require_dataset(dataset_id)
+    return metrics.full_report(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/metrics/llm")
+def llm_metrics(dataset_id: str) -> dict:
+    """Avaliação do assistente por critério (§65)."""
+    _require_dataset(dataset_id)
+    return metrics.llm_evaluation(dataset_id)
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 11 — Execution Sandbox (§53)
+# --------------------------------------------------------------------------- #
+class CodeBody(BaseModel):
+    code: str
+
+
+@app.post("/sandbox/inspect")
+def sandbox_inspect(body: CodeBody) -> dict:
+    """Inspeção estática por AST (§53). Não executa nada."""
+    return sandbox.inspect_code(body.code)
+
+
+@app.post("/sandbox/run")
+def sandbox_run(body: CodeBody) -> dict:
+    """Inspeção + execução em dataset de TESTE + diff (§53). Nunca toca no raw."""
+    return sandbox.run(body.code)
+
+
+@app.get("/integrity/verify")
+def integrity_verify() -> dict:
+    """Verifica o hash-chain do Diário e do log de acesso (§36). Admin-only."""
+    from app.core import integrity
+    from app.governance.provenance import TRANSFORMATION_CHAIN_FIELDS
+
+    access_fields = ["actor", "role", "method", "path", "status", "outcome", "at"]
+    with connect() as conn:
+        diary = integrity.verify_chain(conn, "transformations", TRANSFORMATION_CHAIN_FIELDS)
+        access = integrity.verify_chain(conn, "access_log", access_fields)
+    return {
+        "transformation_diary": diary,
+        "access_log": access,
+        "overall_ok": diary["ok"] and access["ok"],
+    }
+
+
+@app.post("/ingest")
+async def ingest_file(
+    request: Request,
+    file: UploadFile,
+    operator: str = Form(...),
+    case_id: str = Form(...),
+) -> dict:
+    """Capacidade 1 — Ingestão (§10). Preserva o raw e cria registros imutáveis."""
+    content = await file.read()
+    extension = Path(file.filename or "").suffix.lower()
+    if extension not in {".csv", ".tsv", ".json", ".jsonl", ".xls", ".xlsx"}:
+        raise HTTPException(400, f"Extensão não suportada: {extension}")
+    try:
+        result = ingestion.ingest(
+            content=content,
+            filename=file.filename or "sem_nome",
+            extension=extension,
+            operator=operator,
+            case_id=case_id,
+            mime_type=file.content_type or "application/octet-stream",
+        )
+    except ingestion.IngestionError as exc:
+        raise HTTPException(422, str(exc)) from exc
+    # Segregação por caso (§48): o criador ganha acesso ao caso ingerido.
+    user = getattr(request.state, "user", None)
+    if user:
+        auth.grant_case_access(user["user_id"], case_id)
+    return {
+        "message": f"{result['row_count']} registros recebidos. "
+        "Nenhuma transformação realizada.",
+        **result,
+    }
+
+
+@app.get("/cases/{case_id}/datasets")
+def list_datasets(case_id: str) -> dict:
+    """Lista os datasets de um caso (aba DATA — §44)."""
+    with connect() as conn:
+        rows = conn.execute(
+            """
+            SELECT d.dataset_id, d.version, d.created_at,
+                   s.filename, s.row_count, s.column_count, s.hash, s.operator
+            FROM datasets d JOIN sources s ON s.source_id = d.source_id
+            WHERE d.case_id = ?
+            ORDER BY d.created_at DESC
+            """,
+            (case_id,),
+        ).fetchall()
+    return {"case_id": case_id, "datasets": [dict(r) for r in rows]}
+
+
+@app.get("/datasets/{dataset_id}/profile")
+def get_profile(dataset_id: str) -> dict:
+    """Capacidade 3 — Profiling (§13). Somente-leitura, sem transformação."""
+    with connect() as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM datasets WHERE dataset_id = ?", (dataset_id,)
+        ).fetchone()
+    if not exists:
+        raise HTTPException(404, "Dataset não encontrado.")
+    return profiling.profile_dataset(dataset_id).model_dump()
+
+
+@app.get("/datasets/{dataset_id}/quality")
+def get_quality(dataset_id: str) -> dict:
+    """Módulo 3 — Quality Analyzer (§14). Dimensões + divergências (≠ erro)."""
+    _require_dataset(dataset_id)
+    return quality.analyze(dataset_id)
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 12 — Missing Data Semantic Analyzer (§15)
+# --------------------------------------------------------------------------- #
+class MissingConfirmBody(BaseModel):
+    field: str
+    value: str
+    semantic: str  # MISSING | SENTINEL_ZERO | LEGIT_VALUE | UNKNOWN
+
+
+@app.get("/datasets/{dataset_id}/missing")
+def get_missing(dataset_id: str) -> dict:
+    """Sinaliza representações candidatas a ausência por campo (§15)."""
+    _require_dataset(dataset_id)
+    return missing.analyze(dataset_id)
+
+
+@app.post("/datasets/{dataset_id}/missing/confirm")
+def confirm_missing(dataset_id: str, request: Request, body: MissingConfirmBody) -> dict:
+    """Registra a interpretação humana de uma representação (§15, P9)."""
+    _require_dataset(dataset_id)
+    try:
+        return missing.confirm(dataset_id, body.field, body.value, body.semantic,
+                               request.state.user["username"])
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/records")
+def get_records(dataset_id: str, limit: int = 100, offset: int = 0) -> dict:
+    """Retorna registros brutos (aba DATA). Payload imutável, tal como recebido."""
+    import json
+
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT record_id, original_payload, hash, status FROM raw_records "
+            "WHERE dataset_id = ? LIMIT ? OFFSET ?",
+            (dataset_id, limit, offset),
+        ).fetchall()
+    return {
+        "dataset_id": dataset_id,
+        "records": [
+            {
+                "record_id": r["record_id"],
+                "hash": r["hash"],
+                "status": r["status"],
+                "payload": json.loads(r["original_payload"]),
+            }
+            for r in rows
+        ],
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 2 — Transformação (§16-17, §20, §35, §43)
+# --------------------------------------------------------------------------- #
+class ApplyBody(BaseModel):
+    field: str
+    rule_id: str
+    approved_by: str
+    justification: str = ""
+
+
+class DedupApplyBody(BaseModel):
+    event_key: str
+    approved_by: str
+    justification: str = ""
+
+
+@app.get("/rules")
+def get_rules() -> dict:
+    """Motor de Regras (§52): regras determinísticas com ID + versão."""
+    return {"rules": rules.list_rules()}
+
+
+@app.get("/datasets/{dataset_id}/normalize/preview")
+def normalize_preview(dataset_id: str, field: str, rule_id: str) -> dict:
+    """Capacidade 4 — Transformation Preview (§17). Não grava nada."""
+    _require_dataset(dataset_id)
+    try:
+        return normalization.preview(dataset_id, field, rule_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/normalize/apply")
+def normalize_apply(dataset_id: str, body: ApplyBody) -> dict:
+    """Capacidade 4 — Apply após aprovação humana (§43, P9)."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Aprovação humana exige identificação do operador (P9).")
+    try:
+        return normalization.apply(
+            dataset_id,
+            body.field,
+            body.rule_id,
+            approved_by=body.approved_by,
+            justification=body.justification,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/dedup")
+def dedup_analyze(dataset_id: str, event_key: str) -> dict:
+    """Capacidade 5 — Deduplicação por unidade de evento (§20). Somente-leitura."""
+    _require_dataset(dataset_id)
+    try:
+        return deduplication.analyze(dataset_id, event_key)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/dedup/canonicalize")
+def dedup_canonicalize(dataset_id: str, body: DedupApplyBody) -> dict:
+    """Capacidade 5 — Consolidação após aprovação (§43). Não apaga o raw (P1)."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Consolidação exige aprovação humana (P9).")
+    try:
+        return deduplication.canonicalize(
+            dataset_id,
+            body.event_key,
+            approved_by=body.approved_by,
+            justification=body.justification,
+        )
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/transformations")
+def get_transformations(dataset_id: str) -> dict:
+    """Diário de Transformação do dataset (§35)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "transformations": normalization.list_transformations(dataset_id)}
+
+
+def _require_dataset(dataset_id: str) -> None:
+    with connect() as conn:
+        exists = conn.execute(
+            "SELECT 1 FROM datasets WHERE dataset_id = ?", (dataset_id,)
+        ).fetchone()
+    if not exists:
+        raise HTTPException(404, "Dataset não encontrado.")
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 3 — Entity Resolution, Impact Analysis e Auditoria (§22-27, §34, §45)
+# --------------------------------------------------------------------------- #
+class ImpactBody(BaseModel):
+    entity_a: str
+    entity_b: str
+
+
+class DecideBody(BaseModel):
+    entity_a: str
+    entity_b: str
+    decision: str  # MATCH | NON_MATCH | POSSIBLE
+    approved_by: str
+    justification: str = ""
+
+
+@app.get("/datasets/{dataset_id}/entities")
+def get_entities(dataset_id: str) -> dict:
+    """Capacidade 6 — Entity Resolution (§22). Entidades candidatas + pares."""
+    _require_dataset(dataset_id)
+    return entity_resolution.resolve(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/entities/compare")
+def compare_records(dataset_id: str, a: str, b: str) -> dict:
+    """Matriz de comparação entre dois registros (§24)."""
+    _require_dataset(dataset_id)
+    try:
+        return entity_resolution.compare_records(dataset_id, a, b)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/entities/impact")
+def entity_impact(dataset_id: str, body: ImpactBody) -> dict:
+    """Impact Analysis before/after de uma fusão proposta (§26-27)."""
+    _require_dataset(dataset_id)
+    try:
+        return entity_resolution.impact_analysis(dataset_id, body.entity_a, body.entity_b)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.post("/datasets/{dataset_id}/entities/decide")
+def entity_decide(dataset_id: str, body: DecideBody) -> dict:
+    """Decisão humana sobre a fusão (§43 nível 3, P9). Auditável e reversível."""
+    _require_dataset(dataset_id)
+    if not body.approved_by.strip():
+        raise HTTPException(422, "Decisão de identidade exige aprovação humana (P9).")
+    try:
+        return entity_resolution.decide(
+            dataset_id, body.entity_a, body.entity_b, body.decision,
+            approved_by=body.approved_by, justification=body.justification,
+        )
+    except (KeyError, ValueError) as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/provenance")
+def get_provenance(dataset_id: str) -> dict:
+    """Provenance Graph do dataset (§34): arestas + diário de transformação."""
+    _require_dataset(dataset_id)
+    with connect() as conn:
+        edges = conn.execute(
+            """SELECT src_type, src_id, dst_type, dst_id, relation, created_at
+               FROM provenance_edges ORDER BY edge_id"""
+        ).fetchall()
+    return {
+        "dataset_id": dataset_id,
+        "edges": [dict(e) for e in edges],
+        "transformations": normalization.list_transformations(dataset_id),
+    }
+
+
+@app.get("/provenance/trace")
+def trace(object_type: str, object_id: str) -> dict:
+    """Botão "Como chegamos aqui?" (§45): caminho reverso até a fonte."""
+    return {
+        "object": {"type": object_type, "id": object_id},
+        "path": provenance.trace_back(object_type, object_id),
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 4 — Temporal Engine, EDA/Findings e Adversarial Auditor (§18-42)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/temporal/quality")
+def temporal_quality(dataset_id: str, mode: str = "strict") -> dict:
+    """Qualidade temporal dos timestamps (§18-19). Não valida o relógio (P6)."""
+    _require_dataset(dataset_id)
+    import json as _json
+
+    with connect() as conn:
+        rows = conn.execute(
+            "SELECT original_payload FROM raw_records WHERE dataset_id = ?", (dataset_id,)
+        ).fetchall()
+    parses = [temporal.parse(_json.loads(r["original_payload"]).get("timestamp"), mode)
+              for r in rows]
+    return {
+        "dataset_id": dataset_id,
+        "mode": mode,
+        "quality_distribution": temporal.quality_summary(parses),
+        "samples": [temporal.as_dict(p) for p in parses[:10]],
+        "guardrail": ("Conversão de representação realizada. Isso não demonstra que "
+                      "o relógio de origem estava sincronizado (§18, P6)."),
+    }
+
+
+@app.get("/datasets/{dataset_id}/eda/hours")
+def eda_hours(dataset_id: str, mode: str = "strict") -> dict:
+    """Histograma de hora-do-dia (§28) sob um modo de parsing."""
+    _require_dataset(dataset_id)
+    return eda.hour_distribution(dataset_id, mode)
+
+
+@app.get("/datasets/{dataset_id}/eda/frequencies")
+def eda_frequencies(dataset_id: str, field: str) -> dict:
+    _require_dataset(dataset_id)
+    return eda.frequencies(dataset_id, field)
+
+
+@app.get("/datasets/{dataset_id}/eda/outliers")
+def eda_outliers(dataset_id: str, field: str = "amount") -> dict:
+    """Outliers com Outlier Policy (§30): outlier não é ilicitude."""
+    _require_dataset(dataset_id)
+    return eda.outliers(dataset_id, field)
+
+
+@app.post("/datasets/{dataset_id}/eda/detect-temporal-peak")
+def eda_detect_peak(dataset_id: str) -> dict:
+    """Registra o achado 'concentração 00h-02h' com Pattern Provenance (§32, §89)."""
+    _require_dataset(dataset_id)
+    return eda.detect_temporal_peak(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/eda/pattern-stability")
+def eda_stability(dataset_id: str) -> dict:
+    """Pattern Stability (§33): recalcula o pico sob naive vs strict."""
+    _require_dataset(dataset_id)
+    return eda.pattern_stability(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/findings")
+def get_findings(dataset_id: str) -> dict:
+    """Finding Registry (§55, §76). Todos EXPLORATÓRIOS por padrão (§28)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "findings": eda.list_findings(dataset_id)}
+
+
+@app.post("/datasets/{dataset_id}/findings/{finding_id}/audit")
+def audit_finding(dataset_id: str, finding_id: str) -> dict:
+    """Adversarial Auditor (§41): 'como isso poderia estar errado?'."""
+    _require_dataset(dataset_id)
+    try:
+        return adversarial.audit_finding(dataset_id, finding_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+class SCSBody(BaseModel):
+    hypothesis: str
+    support: list[str] = []
+    challenge: list[str] = []
+
+
+@app.post("/adversarial/support-challenge-synthesis")
+def scs(body: SCSBody) -> dict:
+    """Modo SUPPORT × CHALLENGE × SYNTHESIS (§42)."""
+    return adversarial.support_challenge_synthesis(body.hypothesis, body.support, body.challenge)
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 5 — Rollback + Invalidação Automática (§57-59)
+# --------------------------------------------------------------------------- #
+class RollbackBody(BaseModel):
+    actor: str
+    justification: str = ""
+
+
+@app.post("/datasets/{dataset_id}/entities/{entity_id}/finding")
+def entity_finding(dataset_id: str, entity_id: str) -> dict:
+    """Cria um achado que depende de uma entidade fundida (exemplo §59)."""
+    _require_dataset(dataset_id)
+    try:
+        return eda.entity_aggregate_finding(dataset_id, entity_id)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/datasets/{dataset_id}/reversible")
+def reversible(dataset_id: str) -> dict:
+    """Transformações reversíveis do dataset (§57)."""
+    _require_dataset(dataset_id)
+    return {"dataset_id": dataset_id, "transformations": rollback.list_reversible(dataset_id)}
+
+
+@app.get("/datasets/{dataset_id}/transformations/{transformation_id}/dependencies")
+def dependencies(dataset_id: str, transformation_id: str) -> dict:
+    """Dependency Graph de uma transformação (§58)."""
+    _require_dataset(dataset_id)
+    return rollback.dependency_graph(dataset_id, transformation_id)
+
+
+@app.post("/datasets/{dataset_id}/transformations/{transformation_id}/rollback")
+def do_rollback(dataset_id: str, transformation_id: str, body: RollbackBody) -> dict:
+    """Reverte a transformação e invalida dependências (§57-59, P10, P9)."""
+    _require_dataset(dataset_id)
+    if not body.actor.strip():
+        raise HTTPException(422, "Rollback exige identificação do operador (P9).")
+    try:
+        return rollback.rollback(dataset_id, transformation_id,
+                                 actor=body.actor, justification=body.justification)
+    except KeyError as exc:
+        raise HTTPException(404, str(exc)) from exc
+    except ValueError as exc:
+        raise HTTPException(422, str(exc)) from exc
+
+
+# --------------------------------------------------------------------------- #
+# Milestone 6 — Pacote de Entregáveis (§60-61, §63)
+# --------------------------------------------------------------------------- #
+@app.get("/datasets/{dataset_id}/package")
+def get_package(dataset_id: str) -> dict:
+    """Monta o pacote de 16 entregáveis (§60) como manifesto JSON."""
+    _require_dataset(dataset_id)
+    return export.build_package(dataset_id)
+
+
+@app.get("/datasets/{dataset_id}/report.md")
+def get_report(dataset_id: str) -> Response:
+    """Relatório analítico exportável em Markdown (§60 item 16)."""
+    _require_dataset(dataset_id)
+    return Response(export.render_markdown_report(dataset_id), media_type="text/markdown")
+
+
+@app.get("/datasets/{dataset_id}/export.zip")
+def get_export_zip(dataset_id: str) -> Response:
+    """Pacote completo de entregáveis em ZIP (§60)."""
+    _require_dataset(dataset_id)
+    data = export.build_zip(dataset_id)
+    return Response(
+        data,
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="trace-lm_pacote_{dataset_id[:8]}.zip"'},
+    )
