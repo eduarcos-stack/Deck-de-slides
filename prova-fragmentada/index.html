@@ -407,15 +407,7 @@ img { display: block; max-width: 100%; }
           /* medição nunca pode quebrar o envio do formulário */
         }
 
-      try {
-        if (window.fbq) {
-          fbq("track", "Lead", { content_name: "material-palestra" });
-        }
-        if (window.gtag) {
-          gtag("event", "generate_lead", { content_name: "material-palestra" });
-        }
-      } catch (erroMedicao) { /* medição não pode quebrar o envio */ }
-        mostrar("sucesso", "Cadastro confirmado.",
+     mostrar("sucesso", "Cadastro confirmado.",
           "O material será enviado para o e-mail informado após a palestra.");
         form.reset();
         regras.forEach(function (r) {
