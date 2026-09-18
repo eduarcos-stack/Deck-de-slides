@@ -1,5 +1,35 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+  <!-- Rastreamento — ativo apenas em produção -->
+  <script>
+    (function () {
+      var DOMINIOS_PERMITIDOS = [
+        'glauxconecta.com.br',
+        'www.glauxconecta.com.br'
+      ];
+      if (DOMINIOS_PERMITIDOS.indexOf(window.location.hostname) === -1) return;
+
+      /* ---- Meta Pixel ---- */
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+      n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+      (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1391851678179692');
+      fbq('track', 'PageView');
+
+      /* ---- Google Analytics 4 ---- */
+      var ga = document.createElement('script');
+      ga.async = true;
+      ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-VXQH1FXB3G';
+      document.head.appendChild(ga);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){ dataLayer.push(arguments); }
+      window.gtag = gtag;
+      gtag('js', new Date());
+      gtag('config', 'G-VXQH1FXB3G');
+    })();
+  </script>     
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
