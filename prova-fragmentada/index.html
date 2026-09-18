@@ -175,6 +175,30 @@ img { display: block; max-width: 100%; }
   *, *::before, *::after { transition-duration: 0.001ms !important; }
 }
 </style>
+   <script>
+(function () {
+  var DOMINIOS_PERMITIDOS = ['glauxconecta.com.br', 'www.glauxconecta.com.br'];
+  if (DOMINIOS_PERMITIDOS.indexOf(window.location.hostname) === -1) return;
+
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', '1391851678179692');
+  fbq('track', 'PageView');
+
+  var ga = document.createElement('script');
+  ga.async = true;
+  ga.src = 'https://www.googletagmanager.com/gtag/js?id=G-VXQH1FXB3G';
+  document.head.appendChild(ga);
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){ dataLayer.push(arguments); }
+  window.gtag = gtag;
+  gtag('js', new Date());
+  gtag('config', 'G-VXQH1FXB3G');
+})();
+</script>
 </head>
 <body>
 
@@ -383,6 +407,14 @@ img { display: block; max-width: 100%; }
           /* medição nunca pode quebrar o envio do formulário */
         }
 
+      try {
+        if (window.fbq) {
+          fbq("track", "Lead", { content_name: "material-palestra" });
+        }
+        if (window.gtag) {
+          gtag("event", "generate_lead", { content_name: "material-palestra" });
+        }
+      } catch (erroMedicao) { /* medição não pode quebrar o envio */ }
         mostrar("sucesso", "Cadastro confirmado.",
           "O material será enviado para o e-mail informado após a palestra.");
         form.reset();
